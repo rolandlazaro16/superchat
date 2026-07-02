@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send } from "lucide-react";
 
 const ENDPOINT = "https://superchat-yzyw.onrender.com";
 let socket: Socket;
@@ -162,15 +163,27 @@ export default function ChatPage() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {selectedChat ? (
           <>
-            <div className="glass-panel" style={{ padding: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 style={{ fontSize: "1.5rem" }}>
-                {!selectedChat.isGroupChat
-                  ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name
-                  : selectedChat.chatName.toUpperCase()}
-              </h2>
+            <div className="glass-panel" style={{ padding: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", background: "rgba(15, 23, 42, 0.95)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
+                  {(!selectedChat.isGroupChat ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name : selectedChat.chatName).charAt(0).toUpperCase()}
+                </div>
+                <h2 style={{ fontSize: "1.2rem", fontWeight: "600" }}>
+                  {!selectedChat.isGroupChat
+                    ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name
+                    : selectedChat.chatName}
+                </h2>
+              </div>
+              <div style={{ display: "flex", gap: "20px", color: "var(--text-light)", alignItems: "center" }}>
+                <Video size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <Phone size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <div style={{ width: "1px", height: "20px", background: "var(--border-color)", margin: "0 5px" }}></div>
+                <Search size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <MoreVertical size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+              </div>
             </div>
             
-            <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", backgroundImage: "url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')", backgroundSize: "contain", backgroundBlendMode: "overlay", backgroundColor: "rgba(15, 23, 42, 0.9)" }}>
               {messages.length > 0 ? (
                 messages.map((m: any, i: number) => (
                   <div
@@ -195,11 +208,16 @@ export default function ChatPage() {
               )}
             </div>
 
-            <div className="glass-panel" style={{ padding: "1rem", display: "flex", gap: "10px" }}>
+            <div className="glass-panel" style={{ padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
+              <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
+                <Smile size={24} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <Plus size={26} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+              </div>
               <input
                 type="text"
                 className="input-field"
-                placeholder="Type a message..."
+                style={{ flex: 1, borderRadius: "20px", padding: "12px 20px", border: "none", background: "rgba(30, 41, 59, 0.7)", outline: "none", color: "white" }}
+                placeholder="Type a message"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -208,7 +226,13 @@ export default function ChatPage() {
                   }
                 }}
               />
-              <button onClick={sendMessage} className="btn-primary">Send</button>
+              {newMessage.trim() ? (
+                <div onClick={sendMessage} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}>
+                  <Send size={20} color="white" style={{ marginLeft: "-2px" }} />
+                </div>
+              ) : (
+                <Mic size={24} style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s", margin: "0 10px" }} className="hover:text-white" />
+              )}
             </div>
           </>
         ) : (
