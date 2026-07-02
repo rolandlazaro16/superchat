@@ -5,7 +5,7 @@ import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
 
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://superchat-yzyw.onrender.com";
 let socket: Socket;
 
 export default function ChatPage() {

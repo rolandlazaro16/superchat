@@ -68,7 +68,7 @@ export default function Home() {
 
       if (isLogin) {
         const { data } = await axios.post(
-          "http://localhost:5000/api/auth/login",
+          "https://superchat-yzyw.onrender.com/api/auth/login",
           { email, password },
           config
         );
@@ -81,7 +81,7 @@ export default function Home() {
           return;
         }
         const { data } = await axios.post(
-          "http://localhost:5000/api/auth/register",
+          "https://superchat-yzyw.onrender.com/api/auth/register",
           { name, email, password, profilePic: pic },
           config
         );
