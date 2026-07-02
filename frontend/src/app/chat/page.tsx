@@ -6,7 +6,7 @@ import axios from "axios";
 import io, { Socket } from "socket.io-client";
 import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck } from "lucide-react";
 
-const ENDPOINT = "https://superchat-yzyw.onrender.com";
+const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
 
 export default function ChatPage() {
