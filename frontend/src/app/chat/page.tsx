@@ -20,6 +20,60 @@ export default function ChatPage() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loadingChat, setLoadingChat] = useState(false);
 
+  // New User Registration Modal States
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+  const [registerSuccess, setRegisterSuccess] = useState("");
+
+  const handleRegisterNewUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegisterError("");
+    setRegisterSuccess("");
+    setRegisterLoading(true);
+
+    if (!newUserName || !newUserEmail || !newUserPassword) {
+      setRegisterError("Please fill all the fields");
+      setRegisterLoading(false);
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user?.token}`, 
+        },
+      };
+
+      const { data } = await axios.post(
+        `${ENDPOINT}/api/auth/register`,
+        { name: newUserName, email: newUserEmail, password: newUserPassword },
+        config
+      );
+
+      setRegisterSuccess("User registered successfully!");
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      
+      fetchAllUsers();
+      
+      setTimeout(() => {
+        setIsRegisterModalOpen(false);
+        setRegisterSuccess("");
+      }, 2000);
+
+    } catch (err: any) {
+      setRegisterError(err.response?.data?.message || "An error occurred.");
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
   const fetchChats = async () => {
     try {
       const config = {
@@ -180,7 +234,10 @@ export default function ChatPage() {
         {/* Sidebar Header */}
         <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Chats</h2>
-          <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
+          <div style={{ display: "flex", gap: "15px", color: "var(--text-light)", alignItems: "center" }}>
+            {user?.isAdmin && (
+              <UserPlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" title="Register New User" onClick={() => setIsRegisterModalOpen(true)} />
+            )}
             <MessageSquarePlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
             <MoreVertical size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
           </div>
@@ -415,6 +472,36 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+      {/* Registration Modal */}
+      {isRegisterModalOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "2rem", borderRadius: "16px", position: "relative" }}>
+            <button onClick={() => setIsRegisterModalOpen(false)} style={{ position: "absolute", top: "15px", right: "15px", background: "none", border: "none", color: "white", fontSize: "1.2rem", cursor: "pointer" }}>✕</button>
+            <h2 style={{ textAlign: "center", marginBottom: "1.5rem", fontSize: "1.5rem", fontWeight: 700 }}>Register New User</h2>
+            
+            {registerError && <div style={{ color: "#ff4d4f", marginBottom: "1rem", textAlign: "center" }}>{registerError}</div>}
+            {registerSuccess && <div style={{ color: "#4ade80", marginBottom: "1rem", textAlign: "center" }}>{registerSuccess}</div>}
+
+            <form onSubmit={handleRegisterNewUser} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-light)" }}>Name</label>
+                <input type="text" className="input-field" placeholder="User's Name" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} required />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-light)" }}>Email</label>
+                <input type="email" className="input-field" placeholder="User's Email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} required />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-light)" }}>Password</label>
+                <input type="password" className="input-field" placeholder="Temporary Password" value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} required />
+              </div>
+              <button type="submit" className="btn-primary" style={{ marginTop: "1rem" }} disabled={registerLoading}>
+                {registerLoading ? "Registering..." : "Register User"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
