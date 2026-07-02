@@ -12,6 +12,7 @@ export default function Home() {
   const [name, setName] = useState("");
   const [pic, setPic] = useState("");
   const [picLoading, setPicLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const { setUser } = ChatState();
@@ -41,11 +42,16 @@ export default function Home() {
       })
         .then((res) => res.json())
         .then((data) => {
-          setPic(data.url.toString());
+          if (data.url) {
+            setPic(data.url.toString());
+          } else {
+            setError("Failed to upload image. Please check Cloudinary config.");
+          }
           setPicLoading(false);
         })
         .catch((err) => {
           console.error(err);
+          setError("Error uploading image");
           setPicLoading(false);
         });
     } else {
@@ -58,6 +64,7 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSubmitLoading(true);
 
     try {
       const config = {
@@ -90,7 +97,9 @@ export default function Home() {
         router.push("/chat");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "An error occurred");
+      setError(err.response?.data?.message || "An error occurred. Please try again.");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -103,7 +112,7 @@ export default function Home() {
         
         <div style={{ display: "flex", marginBottom: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
           <button
-            onClick={() => setIsLogin(true)}
+            onClick={() => { setIsLogin(true); setError(""); }}
             style={{
               flex: 1,
               padding: "0.75rem",
@@ -118,7 +127,7 @@ export default function Home() {
             Login
           </button>
           <button
-            onClick={() => setIsLogin(false)}
+            onClick={() => { setIsLogin(false); setError(""); }}
             style={{
               flex: 1,
               padding: "0.75rem",
@@ -189,8 +198,8 @@ export default function Home() {
             />
           </div>
 
-          <button type="submit" className="btn-primary" style={{ marginTop: "1rem" }} disabled={picLoading}>
-            {picLoading ? "Uploading Image..." : (isLogin ? "Login" : "Sign Up")}
+          <button type="submit" className="btn-primary" style={{ marginTop: "1rem" }} disabled={picLoading || submitLoading}>
+            {picLoading ? "Uploading Image..." : submitLoading ? "Please wait..." : (isLogin ? "Login" : "Sign Up")}
           </button>
         </form>
       </div>
