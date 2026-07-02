@@ -15,6 +15,9 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchResult, setSearchResult] = useState<any[]>([]);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   const fetchChats = async () => {
     try {
@@ -25,6 +28,46 @@ export default function ChatPage() {
       setChats(data);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearch(query);
+    if (!query) {
+      setSearchResult([]);
+      return;
+    }
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${user?.token}` },
+      };
+      const { data } = await axios.get(`${ENDPOINT}/api/user?search=${query}`, config);
+      setSearchResult(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const accessChat = async (userId: string) => {
+    try {
+      setLoadingChat(true);
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+      };
+      const { data } = await axios.post(`${ENDPOINT}/api/chat`, { userId }, config);
+      
+      if (!chats.find((c: any) => c._id === data._id)) setChats([data, ...chats]);
+      
+      setSelectedChat(data);
+      setLoadingChat(false);
+      setSearch("");
+      setSearchResult([]);
+    } catch (error) {
+      console.error(error);
+      setLoadingChat(false);
     }
   };
 
@@ -136,6 +179,8 @@ export default function ChatPage() {
             <input 
               type="text" 
               placeholder="Search or start a new chat" 
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
               style={{ background: "transparent", border: "none", color: "white", outline: "none", width: "100%", fontSize: "0.95rem" }} 
             />
           </div>
@@ -148,9 +193,37 @@ export default function ChatPage() {
           <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.4)", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer" }}>Favorites</span>
         </div>
         
-        {/* Chats List */}
+        {/* Chats List or Search Results */}
         <div style={{ flex: 1, overflowY: "auto", padding: "5px 0" }}>
-          {chats ? (
+          {search ? (
+            searchResult.length > 0 ? (
+              searchResult.map((u) => (
+                <div
+                  onClick={() => accessChat(u._id)}
+                  key={u._id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px 15px",
+                    cursor: "pointer",
+                    transition: "background 0.2s ease",
+                    gap: "15px"
+                  }}
+                  className="hover:bg-slate-800/50"
+                >
+                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                    {u.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
+                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", marginBottom: "3px" }}>{u.name}</div>
+                    <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{u.email}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>No users found</div>
+            )
+          ) : chats ? (
             chats.map((chat) => (
               <div
                 onClick={() => setSelectedChat(chat)}
