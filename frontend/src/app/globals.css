@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0d0d12;
+  --foreground: #e2e8f0;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --secondary: #1e1e2d;
+  --accent: #8b5cf6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  background-image: radial-gradient(circle at top, rgba(99, 102, 241, 0.15), transparent 50%);
+  min-height: 100vh;
+}
+
+.glass-panel {
+  background: rgba(30, 30, 45, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.input-field {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  outline: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px var(--primary);
+}
