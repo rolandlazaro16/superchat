@@ -17,6 +17,7 @@ export default function ChatPage() {
   const [socketConnected, setSocketConnected] = useState(false);
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loadingChat, setLoadingChat] = useState(false);
 
   const fetchChats = async () => {
@@ -26,6 +27,18 @@ export default function ChatPage() {
       };
       const { data } = await axios.get(`${ENDPOINT}/api/chat`, config);
       setChats(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${user?.token}` },
+      };
+      const { data } = await axios.get(`${ENDPOINT}/api/user`, config);
+      setAllUsers(data);
     } catch (error) {
       console.error(error);
     }
@@ -147,6 +160,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (user) {
       fetchChats();
+      fetchAllUsers();
     }
   }, [user, fetchAgain]);
 
@@ -223,7 +237,7 @@ export default function ChatPage() {
             ) : (
               <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>No users found</div>
             )
-          ) : chats ? (
+          ) : chats && chats.length > 0 ? (
             chats.map((chat) => (
               <div
                 onClick={() => setSelectedChat(chat)}
@@ -273,7 +287,34 @@ export default function ChatPage() {
               </div>
             ))
           ) : (
-            <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>Loading chats...</div>
+            <>
+              <div style={{ padding: "10px 15px", fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", marginTop: "10px" }}>Start a new chat</div>
+              {allUsers.length > 0 ? allUsers.map((u) => (
+                <div
+                  onClick={() => accessChat(u._id)}
+                  key={u._id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px 15px",
+                    cursor: "pointer",
+                    transition: "background 0.2s ease",
+                    gap: "15px"
+                  }}
+                  className="hover:bg-slate-800/50"
+                >
+                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                    {u.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
+                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", marginBottom: "3px" }}>{u.name}</div>
+                    <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{u.email}</div>
+                  </div>
+                </div>
+              )) : (
+                <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>No other users registered yet.</div>
+              )}
+            </>
           )}
         </div>
       </div>
