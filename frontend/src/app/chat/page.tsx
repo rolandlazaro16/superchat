@@ -3,26 +3,102 @@
 import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
+import io, { Socket } from "socket.io-client";
+
+const ENDPOINT = "http://localhost:5000";
+let socket: Socket;
 
 export default function ChatPage() {
   const { user, chats, setChats, selectedChat, setSelectedChat } = ChatState();
   const [fetchAgain, setFetchAgain] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [socketConnected, setSocketConnected] = useState(false);
 
   const fetchChats = async () => {
     try {
       const config = {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
+        headers: { Authorization: `Bearer ${user?.token}` },
       };
-      const { data } = await axios.get("http://localhost:5000/api/chat", config);
+      const { data } = await axios.get(`${ENDPOINT}/api/chat`, config);
       setChats(data);
     } catch (error) {
       console.error(error);
     }
   };
+
+  const fetchMessages = async () => {
+    if (!selectedChat) return;
+
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${user?.token}` },
+      };
+      const { data } = await axios.get(
+        `${ENDPOINT}/api/message/${selectedChat._id}`,
+        config
+      );
+      setMessages(data);
+      socket.emit("join chat", selectedChat._id);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (newMessage) {
+      try {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${user?.token}`,
+          },
+        };
+        setNewMessage("");
+        const { data } = await axios.post(
+          `${ENDPOINT}/api/message`,
+          {
+            content: newMessage,
+            chatId: selectedChat._id,
+          },
+          config
+        );
+        socket.emit("new message", data);
+        setMessages([...messages, data]);
+        setFetchAgain(!fetchAgain);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      socket = io(ENDPOINT);
+      socket.emit("setup", user);
+      socket.on("connected", () => setSocketConnected(true));
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [selectedChat]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("message received", (newMessageReceived: any) => {
+        if (!selectedChat || selectedChat._id !== newMessageReceived.chat._id) {
+          // You could notify the user here
+        } else {
+          setMessages([...messages, newMessageReceived]);
+        }
+      });
+    }
+  });
 
   useEffect(() => {
     if (user) {
@@ -58,8 +134,8 @@ export default function ChatPage() {
                   marginBottom: "0.5rem",
                   borderRadius: "8px",
                   cursor: "pointer",
-                  background: selectedChat === chat ? "var(--primary-color)" : "rgba(30, 41, 59, 0.5)",
-                  color: selectedChat === chat ? "white" : "var(--text-light)",
+                  background: selectedChat?._id === chat._id ? "var(--primary-color)" : "rgba(30, 41, 59, 0.5)",
+                  color: selectedChat?._id === chat._id ? "white" : "var(--text-light)",
                   transition: "background 0.3s ease",
                 }}
               >
@@ -94,14 +170,32 @@ export default function ChatPage() {
               </h2>
             </div>
             
-            <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-              {/* Messages will render here */}
-              <div style={{ textAlign: "center", marginTop: "auto", marginBottom: "auto", color: "var(--text-muted)" }}>
-                Start chatting!
-              </div>
+            <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {messages.length > 0 ? (
+                messages.map((m: any, i: number) => (
+                  <div
+                    key={m._id || i}
+                    style={{
+                      alignSelf: m.sender._id === user?._id ? "flex-end" : "flex-start",
+                      background: m.sender._id === user?._id ? "var(--primary-color)" : "rgba(30, 41, 59, 0.7)",
+                      color: "white",
+                      padding: "8px 15px",
+                      borderRadius: "15px",
+                      maxWidth: "70%",
+                      wordBreak: "break-word"
+                    }}
+                  >
+                    {m.content}
+                  </div>
+                ))
+              ) : (
+                <div style={{ textAlign: "center", marginTop: "auto", marginBottom: "auto", color: "var(--text-muted)" }}>
+                  Start chatting!
+                </div>
+              )}
             </div>
 
-            <div className="glass-panel" style={{ padding: "1rem" }}>
+            <div className="glass-panel" style={{ padding: "1rem", display: "flex", gap: "10px" }}>
               <input
                 type="text"
                 className="input-field"
@@ -109,11 +203,12 @@ export default function ChatPage() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && newMessage) {
-                    // Send message logic
+                  if (e.key === "Enter") {
+                    sendMessage();
                   }
                 }}
               />
+              <button onClick={sendMessage} className="btn-primary">Send</button>
             </div>
           </>
         ) : (

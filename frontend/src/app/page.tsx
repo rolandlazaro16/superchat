@@ -10,6 +10,8 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [pic, setPic] = useState("");
+  const [picLoading, setPicLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const { setUser } = ChatState();
@@ -20,6 +22,38 @@ export default function Home() {
       router.push("/chat");
     }
   }, [router]);
+
+  const postDetails = (pics: any) => {
+    setPicLoading(true);
+    if (pics === undefined) {
+      setError("Please Select an Image!");
+      setPicLoading(false);
+      return;
+    }
+    if (pics.type === "image/jpeg" || pics.type === "image/png") {
+      const data = new FormData();
+      data.append("file", pics);
+      data.append("upload_preset", "superchat"); // You will need to create this preset in Cloudinary
+      data.append("cloud_name", "your_cloud_name"); // Update this with actual cloud name
+      fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
+        method: "post",
+        body: data,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setPic(data.url.toString());
+          setPicLoading(false);
+        })
+        .catch((err) => {
+          console.error(err);
+          setPicLoading(false);
+        });
+    } else {
+      setError("Please Select an Image (JPEG/PNG)!");
+      setPicLoading(false);
+      return;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +82,7 @@ export default function Home() {
         }
         const { data } = await axios.post(
           "http://localhost:5000/api/auth/register",
-          { name, email, password },
+          { name, email, password, profilePic: pic },
           config
         );
         localStorage.setItem("userInfo", JSON.stringify(data));
@@ -104,16 +138,31 @@ export default function Home() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {!isLogin && (
-            <div>
-              <label style={{ display: "block", marginBottom: "0.5rem" }}>Name</label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="Enter your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
+            <>
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem" }}>Name</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem" }}>Profile Picture</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="input-field"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      postDetails(e.target.files[0]);
+                    }
+                  }}
+                />
+              </div>
+            </>
           )}
           
           <div>
@@ -140,8 +189,8 @@ export default function Home() {
             />
           </div>
 
-          <button type="submit" className="btn-primary" style={{ marginTop: "1rem" }}>
-            {isLogin ? "Login" : "Sign Up"}
+          <button type="submit" className="btn-primary" style={{ marginTop: "1rem" }} disabled={picLoading}>
+            {picLoading ? "Uploading Image..." : (isLogin ? "Login" : "Sign Up")}
           </button>
         </form>
       </div>
