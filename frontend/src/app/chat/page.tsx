@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus } from "lucide-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -235,7 +235,12 @@ export default function ChatPage() {
                 </div>
               ))
             ) : (
-              <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>No users found</div>
+              <div style={{ textAlign: "center", marginTop: "3rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                <div style={{ padding: "15px", background: "rgba(30, 41, 59, 0.5)", borderRadius: "50%" }}>
+                  <Search size={32} color="var(--text-muted)" />
+                </div>
+                <p>No users found for "{search}"</p>
+              </div>
             )
           ) : chats && chats.length > 0 ? (
             chats.map((chat) => (
@@ -280,7 +285,7 @@ export default function ChatPage() {
                         </span>
                       </>
                     ) : (
-                      <span style={{ fontStyle: "italic" }}>No messages yet</span>
+                      <span style={{ fontStyle: "italic", display: "flex", alignItems: "center", gap: "5px" }}><MessageCircle size={14} /> No messages yet</span>
                     )}
                   </div>
                 </div>
@@ -288,7 +293,9 @@ export default function ChatPage() {
             ))
           ) : (
             <>
-              <div style={{ padding: "10px 15px", fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", marginTop: "10px" }}>Start a new chat</div>
+              <div style={{ padding: "10px 15px", fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Users size={16} /> Start a new chat
+              </div>
               {allUsers.length > 0 ? allUsers.map((u) => (
                 <div
                   onClick={() => accessChat(u._id)}
@@ -298,21 +305,28 @@ export default function ChatPage() {
                     alignItems: "center",
                     padding: "12px 15px",
                     cursor: "pointer",
-                    transition: "background 0.2s ease",
-                    gap: "15px"
+                    transition: "all 0.2s ease",
+                    gap: "15px",
+                    borderRadius: "8px",
+                    margin: "0 10px 5px 10px"
                   }}
-                  className="hover:bg-slate-800/50"
+                  className="hover:bg-slate-800 hover:scale-[1.02]"
                 >
-                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "linear-gradient(135deg, var(--primary-color), #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, boxShadow: "0 4px 10px rgba(0,0,0,0.2)" }}>
                     {u.name.charAt(0).toUpperCase()}
                   </div>
-                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
-                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", marginBottom: "3px" }}>{u.name}</div>
-                    <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{u.email}</div>
+                  <div style={{ flex: 1, overflow: "hidden", paddingBottom: "5px" }}>
+                    <div style={{ fontWeight: 600, color: "white", fontSize: "1.05rem", marginBottom: "2px" }}>{u.name}</div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}><UserPlus size={14} /> {u.email}</div>
                   </div>
                 </div>
               )) : (
-                <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>No other users registered yet.</div>
+                <div style={{ textAlign: "center", marginTop: "3rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                  <div style={{ padding: "15px", background: "rgba(30, 41, 59, 0.5)", borderRadius: "50%" }}>
+                    <UserX size={32} color="var(--text-muted)" />
+                  </div>
+                  <p>No other users registered yet.</p>
+                </div>
               )}
             </>
           )}
