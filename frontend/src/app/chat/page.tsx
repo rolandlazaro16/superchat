@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck } from "lucide-react";
 
 const ENDPOINT = "https://superchat-yzyw.onrender.com";
 let socket: Socket;
@@ -111,50 +111,96 @@ export default function ChatPage() {
     <div style={{ display: "flex", height: "100vh", width: "100%" }}>
       {/* Sidebar - Chat List */}
       <div
-        className="glass-panel"
         style={{
-          width: "30%",
-          minWidth: "300px",
+          width: "35%",
+          minWidth: "320px",
           borderRight: "1px solid var(--border-color)",
           display: "flex",
           flexDirection: "column",
+          background: "rgba(15, 23, 42, 0.95)",
         }}
       >
-        <div style={{ padding: "1rem", borderBottom: "1px solid var(--border-color)" }}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>My Chats</h2>
+        {/* Sidebar Header */}
+        <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Chats</h2>
+          <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
+            <MessageSquarePlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+            <MoreVertical size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+          </div>
         </div>
         
-        <div style={{ flex: 1, overflowY: "auto", padding: "1rem" }}>
+        {/* Search Bar */}
+        <div style={{ padding: "0 15px 10px 15px" }}>
+          <div style={{ background: "rgba(30, 41, 59, 0.7)", borderRadius: "8px", display: "flex", alignItems: "center", padding: "8px 15px", gap: "10px" }}>
+            <Search size={18} color="var(--text-muted)" />
+            <input 
+              type="text" 
+              placeholder="Search or start a new chat" 
+              style={{ background: "transparent", border: "none", color: "white", outline: "none", width: "100%", fontSize: "0.95rem" }} 
+            />
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div style={{ padding: "0 15px 10px 15px", display: "flex", gap: "10px", borderBottom: "1px solid var(--border-color)" }}>
+          <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.8)", color: "white", fontSize: "0.85rem", cursor: "pointer" }}>All</span>
+          <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.4)", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer" }}>Unread</span>
+          <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.4)", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer" }}>Favorites</span>
+        </div>
+        
+        {/* Chats List */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "5px 0" }}>
           {chats ? (
             chats.map((chat) => (
               <div
                 onClick={() => setSelectedChat(chat)}
                 key={chat._id}
                 style={{
-                  padding: "1rem",
-                  marginBottom: "0.5rem",
-                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "12px 15px",
                   cursor: "pointer",
-                  background: selectedChat?._id === chat._id ? "var(--primary-color)" : "rgba(30, 41, 59, 0.5)",
-                  color: selectedChat?._id === chat._id ? "white" : "var(--text-light)",
-                  transition: "background 0.3s ease",
+                  background: selectedChat?._id === chat._id ? "rgba(30, 41, 59, 0.7)" : "transparent",
+                  transition: "background 0.2s ease",
+                  gap: "15px"
                 }}
+                className="hover:bg-slate-800/50"
               >
-                <div style={{ fontWeight: 600 }}>
-                  {!chat.isGroupChat
-                    ? chat.users.find((u: any) => u._id !== user?._id)?.name
-                    : chat.chatName}
+                {/* Avatar */}
+                <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                  {(!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName).charAt(0).toUpperCase()}
                 </div>
-                {chat.latestMessage && (
-                  <div style={{ fontSize: "0.85rem", opacity: 0.8, marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <b>{chat.latestMessage.sender.name}: </b>
-                    {chat.latestMessage.content}
+                
+                {/* Chat Info */}
+                <div style={{ flex: 1, overflow: "hidden", borderBottom: selectedChat?._id === chat._id ? "none" : "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
+                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {!chat.isGroupChat
+                        ? chat.users.find((u: any) => u._id !== user?._id)?.name
+                        : chat.chatName}
+                    </div>
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
+                      Yesterday
+                    </span>
                   </div>
-                )}
+                  
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                    {chat.latestMessage ? (
+                      <>
+                        <CheckCheck size={16} color="#34B7F1" />
+                        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {chat.latestMessage.content}
+                        </span>
+                      </>
+                    ) : (
+                      <span style={{ fontStyle: "italic" }}>No messages yet</span>
+                    )}
+                  </div>
+                </div>
               </div>
             ))
           ) : (
-            <div style={{ textAlign: "center", marginTop: "2rem" }}>Loading...</div>
+            <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)" }}>Loading chats...</div>
           )}
         </div>
       </div>
