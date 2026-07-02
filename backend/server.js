@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 
@@ -19,7 +20,9 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// Routes setup will go here
+// Routes setup
+app.use('/api/auth', authRoutes);
+
 app.get('/', (req, res) => {
   res.send('Superchat Backend is running');
 });
