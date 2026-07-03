@@ -10,6 +10,10 @@ interface UserInfo {
   profilePic?: string;
   token: string;
   isAdmin?: boolean;
+  pinnedChats?: string[];
+  deletedChats?: string[];
+  blockedUsers?: string[];
+  clearedChats?: { chatId: string, clearedAt: string }[];
 }
 
 interface ChatContextType {

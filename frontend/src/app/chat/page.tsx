@@ -24,7 +24,21 @@ const formatTime = (dateString: string) => {
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
-const ChatDropdownMenu = ({ closeMenu }: { closeMenu: () => void }) => {
+const ChatDropdownMenu = ({ 
+  closeMenu,
+  onPin,
+  onClear,
+  onDelete,
+  onBlock,
+  isPinned = false
+}: { 
+  closeMenu: () => void;
+  onPin?: () => void;
+  onClear?: () => void;
+  onDelete?: () => void;
+  onBlock?: () => void;
+  isPinned?: boolean;
+}) => {
   return (
     <>
       <div 
@@ -37,14 +51,14 @@ const ChatDropdownMenu = ({ closeMenu }: { closeMenu: () => void }) => {
       >
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Archive size={16} /> Archive chat</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><BellOff size={16} /> Mute notifications</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Pin size={16} /> Pin chat</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={() => { if (onPin) onPin(); closeMenu(); }}><Pin size={16} /> {isPinned ? "Unpin chat" : "Pin chat"}</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Mail size={16} /> Mark as unread</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Heart size={16} /> Add to Favorites</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><List size={16} /> Add to list</div>
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Ban size={16} /> Block</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><MinusCircle size={16} /> Clear chat</div>
-        <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={closeMenu}><Trash2 size={16} /> Delete chat</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={() => { if (onBlock) onBlock(); closeMenu(); }}><Ban size={16} /> Block</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={() => { if (onClear) onClear(); closeMenu(); }}><MinusCircle size={16} /> Clear chat</div>
+        <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={() => { if (onDelete) onDelete(); closeMenu(); }}><Trash2 size={16} /> Delete chat</div>
       </div>
     </>
   );
@@ -116,6 +130,71 @@ export default function ChatPage() {
       setRegisterError(err.response?.data?.message || "An error occurred.");
     } finally {
       setRegisterLoading(false);
+    }
+  };
+
+  const handlePinChat = async (chatId: string) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      const { data } = await axios.put(`${ENDPOINT}/api/chat/${chatId}/pin`, {}, config);
+      if (user) {
+        const updatedUser = { ...user, pinnedChats: data };
+        setUser(updatedUser);
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      }
+      setFetchAgain(!fetchAgain);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleClearChat = async (chatId: string) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      const { data } = await axios.put(`${ENDPOINT}/api/chat/${chatId}/clear`, {}, config);
+      if (user) {
+        const updatedUser = { ...user, clearedChats: data };
+        setUser(updatedUser);
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      }
+      if (selectedChat?._id === chatId) {
+        setMessages([]);
+        setFetchAgain(!fetchAgain);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      const { data } = await axios.put(`${ENDPOINT}/api/chat/${chatId}/delete`, {}, config);
+      if (user) {
+        const updatedUser = { ...user, deletedChats: data };
+        setUser(updatedUser);
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      }
+      if (selectedChat?._id === chatId) {
+        setSelectedChat(null);
+      }
+      setFetchAgain(!fetchAgain);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleBlockUser = async (userId: string) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      const { data } = await axios.put(`${ENDPOINT}/api/user/${userId}/block`, {}, config);
+      if (user) {
+        const updatedUser = { ...user, blockedUsers: data };
+        setUser(updatedUser);
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -348,7 +427,16 @@ export default function ChatPage() {
           ) : (
             <>
               {/* Existing Chats */}
-              {chats && chats.length > 0 && chats.map((chat) => (
+              {chats && chats.length > 0 && chats
+                .slice()
+                .sort((a, b) => {
+                  const isAPinned = user?.pinnedChats?.includes(a._id);
+                  const isBPinned = user?.pinnedChats?.includes(b._id);
+                  if (isAPinned && !isBPinned) return -1;
+                  if (!isAPinned && isBPinned) return 1;
+                  return 0;
+                })
+                .map((chat) => (
               <div
                 onMouseEnter={() => setHoveredItemId(chat._id)}
                 onMouseLeave={() => setHoveredItemId(null)}
@@ -382,7 +470,17 @@ export default function ChatPage() {
 
                 {/* Dropdown Menu */}
                 {openMenuId === chat._id && (
-                  <ChatDropdownMenu closeMenu={() => setOpenMenuId(null)} />
+                  <ChatDropdownMenu 
+                    closeMenu={() => setOpenMenuId(null)}
+                    onPin={() => handlePinChat(chat._id)}
+                    onClear={() => handleClearChat(chat._id)}
+                    onDelete={() => handleDeleteChat(chat._id)}
+                    onBlock={() => {
+                      const otherUser = chat.users.find((u: any) => u._id !== user?._id);
+                      if (otherUser) handleBlockUser(otherUser._id);
+                    }}
+                    isPinned={user?.pinnedChats?.includes(chat._id) || false}
+                  />
                 )}
 
                 {/* Avatar */}
@@ -393,10 +491,11 @@ export default function ChatPage() {
                 {/* Chat Info */}
                 <div style={{ flex: 1, overflow: "hidden", borderBottom: selectedChat?._id === chat._id ? "none" : "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
-                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "5px" }}>
                       {!chat.isGroupChat
                         ? chat.users.find((u: any) => u._id !== user?._id)?.name
                         : chat.chatName}
+                      {user?.pinnedChats?.includes(chat._id) && <Pin size={14} color="var(--text-muted)" style={{ transform: "rotate(45deg)" }} />}
                     </div>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
                       {chat.latestMessage ? formatTime(chat.latestMessage.createdAt) : formatTime(chat.updatedAt)}
@@ -454,7 +553,10 @@ export default function ChatPage() {
 
                   {/* Dropdown Menu */}
                   {openMenuId === u._id && (
-                    <ChatDropdownMenu closeMenu={() => setOpenMenuId(null)} />
+                    <ChatDropdownMenu 
+                      closeMenu={() => setOpenMenuId(null)} 
+                      onBlock={() => handleBlockUser(u._id)}
+                    />
                   )}
 
                   <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>

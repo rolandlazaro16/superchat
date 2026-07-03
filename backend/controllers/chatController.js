@@ -53,7 +53,10 @@ const accessChat = async (req, res) => {
 // @access  Protected
 const fetchChats = async (req, res) => {
   try {
-    Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+    Chat.find({ 
+      users: { $elemMatch: { $eq: req.user._id } },
+      _id: { $nin: req.user.deletedChats || [] }
+    })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage")
@@ -106,8 +109,67 @@ const createGroupChat = async (req, res) => {
   }
 };
 
+// @desc    Toggle Pin Chat
+// @route   PUT /api/chat/:id/pin
+// @access  Protected
+const togglePinChat = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const chatId = req.params.id;
+    if (user.pinnedChats.includes(chatId)) {
+      user.pinnedChats = user.pinnedChats.filter(id => id.toString() !== chatId);
+    } else {
+      user.pinnedChats.push(chatId);
+    }
+    await user.save();
+    res.status(200).json(user.pinnedChats);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Delete Chat (hide for user)
+// @route   PUT /api/chat/:id/delete
+// @access  Protected
+const deleteChatForUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const chatId = req.params.id;
+    if (!user.deletedChats.includes(chatId)) {
+      user.deletedChats.push(chatId);
+      await user.save();
+    }
+    res.status(200).json(user.deletedChats);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Clear Chat
+// @route   PUT /api/chat/:id/clear
+// @access  Protected
+const clearChatForUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const chatId = req.params.id;
+    const existingClear = user.clearedChats.find(c => c.chatId.toString() === chatId);
+    if (existingClear) {
+      existingClear.clearedAt = Date.now();
+    } else {
+      user.clearedChats.push({ chatId, clearedAt: Date.now() });
+    }
+    await user.save();
+    res.status(200).json(user.clearedChats);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   accessChat,
   fetchChats,
   createGroupChat,
+  togglePinChat,
+  deleteChatForUser,
+  clearChatForUser,
 };

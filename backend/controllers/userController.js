@@ -20,4 +20,20 @@ const allUsers = async (req, res) => {
   res.send(users);
 };
 
-module.exports = { allUsers };
+const toggleBlockUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const blockId = req.params.id;
+    if (user.blockedUsers.includes(blockId)) {
+      user.blockedUsers = user.blockedUsers.filter(id => id.toString() !== blockId);
+    } else {
+      user.blockedUsers.push(blockId);
+    }
+    await user.save();
+    res.status(200).json(user.blockedUsers);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+module.exports = { allUsers, toggleBlockUser };

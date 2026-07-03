@@ -24,6 +24,13 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: false,
   },
+  pinnedChats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
+  deletedChats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  clearedChats: [{ 
+    chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' },
+    clearedAt: { type: Date, default: Date.now }
+  }],
 }, { timestamps: true });
 
 // Hash password before saving to database

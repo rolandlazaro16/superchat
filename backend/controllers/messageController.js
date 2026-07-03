@@ -7,7 +7,18 @@ const Chat = require('../models/Chat');
 // @access  Protected
 const allMessages = async (req, res) => {
   try {
-    const messages = await Message.find({ chat: req.params.chatId })
+    const user = await User.findById(req.user._id);
+    const chatId = req.params.chatId;
+    
+    // Check if the chat was cleared by this user
+    const clearedChat = user.clearedChats?.find(c => c.chatId.toString() === chatId);
+    const query = { chat: chatId };
+    
+    if (clearedChat) {
+      query.createdAt = { $gt: clearedChat.clearedAt };
+    }
+
+    const messages = await Message.find(query)
       .populate("sender", "name profilePic email")
       .populate("chat");
     res.json(messages);
