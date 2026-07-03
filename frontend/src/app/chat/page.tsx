@@ -9,6 +9,21 @@ import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSqua
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
 
+const formatTime = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
 export default function ChatPage() {
   const { user, chats, setChats, selectedChat, setSelectedChat } = ChatState();
   const [fetchAgain, setFetchAgain] = useState(false);
@@ -332,7 +347,7 @@ export default function ChatPage() {
                         : chat.chatName}
                     </div>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
-                      Yesterday
+                      {chat.latestMessage ? formatTime(chat.latestMessage.createdAt) : formatTime(chat.updatedAt)}
                     </span>
                   </div>
                   
