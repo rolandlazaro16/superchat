@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, MailUnread } from "lucide-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -22,6 +22,32 @@ const formatTime = (dateString: string) => {
     return "Yesterday";
   }
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
+const ChatDropdownMenu = ({ closeMenu }: { closeMenu: () => void }) => {
+  return (
+    <>
+      <div 
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} 
+        onClick={(e) => { e.stopPropagation(); closeMenu(); }} 
+      />
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', right: '30px', top: '40px', background: 'rgba(30, 41, 59, 1)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '8px 0', minWidth: '220px', zIndex: 100, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', display: 'flex', flexDirection: 'column' }}
+      >
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Archive size={16} /> Archive chat</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><BellOff size={16} /> Mute notifications</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Pin size={16} /> Pin chat</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><MailUnread size={16} /> Mark as unread</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Heart size={16} /> Add to Favorites</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><List size={16} /> Add to list</div>
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Ban size={16} /> Block</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><MinusCircle size={16} /> Clear chat</div>
+        <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={closeMenu}><Trash2 size={16} /> Delete chat</div>
+      </div>
+    </>
+  );
 };
 
 export default function ChatPage() {
@@ -43,6 +69,10 @@ export default function ChatPage() {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
+  
+  // Dropdown UI states
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const handleRegisterNewUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -320,6 +350,8 @@ export default function ChatPage() {
               {/* Existing Chats */}
               {chats && chats.length > 0 && chats.map((chat) => (
               <div
+                onMouseEnter={() => setHoveredItemId(chat._id)}
+                onMouseLeave={() => setHoveredItemId(null)}
                 onClick={() => setSelectedChat(chat)}
                 key={chat._id}
                 style={{
@@ -329,10 +361,30 @@ export default function ChatPage() {
                   cursor: "pointer",
                   background: selectedChat?._id === chat._id ? "rgba(30, 41, 59, 0.7)" : "transparent",
                   transition: "background 0.2s ease",
-                  gap: "15px"
+                  gap: "15px",
+                  position: "relative"
                 }}
                 className="hover:bg-slate-800/50"
               >
+                {/* 3 Dots / Chevron Icon */}
+                {(hoveredItemId === chat._id || openMenuId === chat._id) && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === chat._id ? null : chat._id);
+                    }}
+                    style={{ position: 'absolute', right: '15px', top: '15px', padding: '5px', borderRadius: '50%', background: openMenuId === chat._id ? 'rgba(255,255,255,0.1)' : 'transparent' }}
+                    className="hover:bg-white/10 transition-colors"
+                  >
+                    <ChevronDown size={20} color="var(--text-muted)" />
+                  </div>
+                )}
+
+                {/* Dropdown Menu */}
+                {openMenuId === chat._id && (
+                  <ChatDropdownMenu closeMenu={() => setOpenMenuId(null)} />
+                )}
+
                 {/* Avatar */}
                 <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
                   {(!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName).charAt(0).toUpperCase()}
@@ -370,6 +422,8 @@ export default function ChatPage() {
               {/* All Users / Contacts */}
               {allUsers.length > 0 ? allUsers.map((u) => (
                 <div
+                  onMouseEnter={() => setHoveredItemId(u._id)}
+                  onMouseLeave={() => setHoveredItemId(null)}
                   onClick={() => accessChat(u._id)}
                   key={u._id}
                   style={{
@@ -379,10 +433,30 @@ export default function ChatPage() {
                     cursor: "pointer",
                     background: "transparent",
                     transition: "background 0.2s ease",
-                    gap: "15px"
+                    gap: "15px",
+                    position: "relative"
                   }}
                   className="hover:bg-slate-800/50"
                 >
+                  {/* 3 Dots / Chevron Icon */}
+                  {(hoveredItemId === u._id || openMenuId === u._id) && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === u._id ? null : u._id);
+                      }}
+                      style={{ position: 'absolute', right: '15px', top: '15px', padding: '5px', borderRadius: '50%', background: openMenuId === u._id ? 'rgba(255,255,255,0.1)' : 'transparent' }}
+                      className="hover:bg-white/10 transition-colors"
+                    >
+                      <ChevronDown size={20} color="var(--text-muted)" />
+                    </div>
+                  )}
+
+                  {/* Dropdown Menu */}
+                  {openMenuId === u._id && (
+                    <ChatDropdownMenu closeMenu={() => setOpenMenuId(null)} />
+                  )}
+
                   <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
                     {u.name.charAt(0).toUpperCase()}
                   </div>
