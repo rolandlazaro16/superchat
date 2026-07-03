@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft } from "lucide-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -399,19 +399,31 @@ export default function ChatPage() {
   }, [user, fetchAgain]);
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100%" }}>
-      {/* Sidebar - Chat List */}
-      <div
-        style={{
-          width: "350px",
-          flexShrink: 0,
-          borderRight: "1px solid var(--border-color)",
-          display: "flex",
-          flexDirection: "column",
-          background: "rgba(15, 23, 42, 0.95)",
-          overflow: "hidden",
-        }}
-      >
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .sidebar-container { display: ${selectedChat ? 'none' : 'flex'} !important; width: 100% !important; }
+          .main-chat-container { display: ${selectedChat ? 'flex' : 'none'} !important; width: 100% !important; }
+          .mobile-back-btn { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-back-btn { display: none !important; }
+        }
+      `}</style>
+      <div style={{ display: "flex", height: "100vh", width: "100%" }}>
+        {/* Sidebar - Chat List */}
+        <div
+          className="sidebar-container"
+          style={{
+            width: "350px",
+            flexShrink: 0,
+            borderRight: "1px solid var(--border-color)",
+            display: "flex",
+            flexDirection: "column",
+            background: "rgba(15, 23, 42, 0.95)",
+            overflow: "hidden",
+          }}
+        >
         {/* Sidebar Header */}
         <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Chats</h2>
@@ -675,11 +687,17 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Window */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div className="main-chat-container" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {selectedChat ? (
           <>
             <div className="glass-panel" style={{ padding: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", background: "rgba(15, 23, 42, 0.95)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                <ArrowLeft 
+                  size={24} 
+                  className="mobile-back-btn hover:text-white" 
+                  style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s" }} 
+                  onClick={() => setSelectedChat(null)} 
+                />
                 <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
                   {(!selectedChat.isGroupChat ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name : selectedChat.chatName).charAt(0).toUpperCase()}
                 </div>
@@ -888,5 +906,6 @@ export default function ChatPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
