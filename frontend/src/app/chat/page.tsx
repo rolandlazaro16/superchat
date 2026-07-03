@@ -110,6 +110,7 @@ export default function ChatPage() {
   const [activeTab, setActiveTab] = useState<string>("chats");
   const [callSearch, setCallSearch] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [readChatIds, setReadChatIds] = useState<string[]>([]);
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -419,7 +420,16 @@ export default function ChatPage() {
           .mobile-back-btn { display: none !important; }
         }
       `}</style>
-      <div style={{ display: "flex", height: "100vh", width: "100%" }}>
+
+      {/* Calculate unread chats */}
+      {(() => {
+        const unreadChatsCount = chats.filter(chat => {
+          if (readChatIds.includes(chat._id) || selectedChat?._id === chat._id) return false;
+          return chat.unreadCount > 0 || (chat.latestMessage && chat.latestMessage.sender._id !== user?._id);
+        }).length;
+        
+        return (
+          <div style={{ display: "flex", height: "100vh", width: "100%" }}>
         {/* Mini Navigation Bar */}
         <div 
           className="mini-nav"
@@ -439,10 +449,15 @@ export default function ChatPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "25px", flex: 1, alignItems: "center" }}>
             <div 
               onClick={() => setActiveTab("chats")}
-              style={{ padding: "8px", borderRadius: "50%", background: activeTab === "chats" ? "rgba(255,255,255,0.1)" : "transparent", cursor: "pointer" }} 
+              style={{ position: "relative", padding: "8px", borderRadius: "50%", background: activeTab === "chats" ? "rgba(255,255,255,0.1)" : "transparent", cursor: "pointer" }} 
               className="hover:bg-white/10 transition-colors"
             >
               <MessageSquare size={22} color={activeTab === "chats" ? "var(--text-light)" : "var(--text-muted)"} />
+              {unreadChatsCount > 0 && (
+                <div style={{ position: "absolute", top: "0px", right: "-2px", background: "#22c55e", color: "white", borderRadius: "50%", minWidth: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: "bold", border: "2px solid rgba(10, 15, 30, 0.95)" }}>
+                  {unreadChatsCount}
+                </div>
+              )}
             </div>
             <div 
               onClick={() => setActiveTab("calls")}
@@ -651,7 +666,7 @@ export default function ChatPage() {
               {chats && chats.length > 0 && chats
                 .filter((chat) => {
                   if (showUnreadOnly) {
-                    // Fallback unread detection: chat has a latest message, and it's not sent by the current user
+                    if (readChatIds.includes(chat._id) || selectedChat?._id === chat._id) return false;
                     return chat.unreadCount > 0 || (chat.latestMessage && chat.latestMessage.sender._id !== user?._id);
                   }
                   return true;
@@ -668,7 +683,12 @@ export default function ChatPage() {
               <div
                 onMouseEnter={() => setHoveredItemId(chat._id)}
                 onMouseLeave={() => setHoveredItemId(null)}
-                onClick={() => setSelectedChat(chat)}
+                onClick={() => {
+                  setSelectedChat(chat);
+                  if (!readChatIds.includes(chat._id)) {
+                    setReadChatIds([...readChatIds, chat._id]);
+                  }
+                }}
                 key={chat._id}
                 style={{
                   display: "flex",
@@ -1160,6 +1180,8 @@ export default function ChatPage() {
         </div>
       )}
     </div>
+      );
+    })()}
     </>
   );
 }
