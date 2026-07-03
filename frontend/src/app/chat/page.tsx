@@ -94,6 +94,10 @@ export default function ChatPage() {
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [userToBlock, setUserToBlock] = useState<any>(null);
   
+  // Unblock User Modal States
+  const [isUnblockModalOpen, setIsUnblockModalOpen] = useState(false);
+  const [userToUnblock, setUserToUnblock] = useState<any>(null);
+  
   // Dropdown UI states
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -217,6 +221,11 @@ export default function ChatPage() {
   const confirmBlockUser = (userObj: any) => {
     setUserToBlock(userObj);
     setIsBlockModalOpen(true);
+  };
+
+  const confirmUnblockUser = (userObj: any) => {
+    setUserToUnblock(userObj);
+    setIsUnblockModalOpen(true);
   };
 
   const handleHideContact = async (userId: string) => {
@@ -692,7 +701,7 @@ export default function ChatPage() {
                       <Trash2 size={18} /> Delete chat
                     </button>
                     <button 
-                      onClick={() => handleBlockUser(otherUser._id)}
+                      onClick={() => confirmUnblockUser(otherUser)}
                       style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "24px", background: "rgba(34, 197, 94, 0.1)", color: "#22c55e", border: "1px solid rgba(34, 197, 94, 0.3)", cursor: "pointer", fontWeight: 500 }}
                       className="hover:bg-green-500/20 transition-colors"
                     >
@@ -800,6 +809,40 @@ export default function ChatPage() {
                 className="hover:bg-red-600 transition-colors"
               >
                 Block
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Unblock Confirmation Modal */}
+      {isUnblockModalOpen && userToUnblock && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "20px", background: "white", color: "#1f2937" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 400, marginBottom: "2rem", marginTop: "0.5rem" }}>
+              Unblock {userToUnblock.name}?
+            </h2>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button 
+                onClick={() => {
+                  setIsUnblockModalOpen(false);
+                  setUserToUnblock(null);
+                }} 
+                style={{ padding: "8px 16px", borderRadius: "20px", border: "none", background: "transparent", color: "#16a34a", fontWeight: 600, cursor: "pointer", fontSize: "0.95rem" }}
+                className="hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  handleBlockUser(userToUnblock._id); // toggles block status
+                  setIsUnblockModalOpen(false);
+                  setUserToUnblock(null);
+                }} 
+                style={{ padding: "8px 20px", borderRadius: "20px", border: "none", background: "#16a34a", color: "white", fontWeight: 500, cursor: "pointer", fontSize: "0.95rem" }}
+                className="hover:bg-green-700 transition-colors"
+              >
+                Unblock
               </button>
             </div>
           </div>
