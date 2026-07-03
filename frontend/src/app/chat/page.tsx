@@ -109,6 +109,7 @@ export default function ChatPage() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<string>("chats");
   const [callSearch, setCallSearch] = useState("");
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -584,8 +585,18 @@ export default function ChatPage() {
 
         {/* Filters */}
         <div style={{ padding: "0 15px 10px 15px", display: "flex", gap: "10px", borderBottom: "1px solid var(--border-color)" }}>
-          <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.8)", color: "white", fontSize: "0.85rem", cursor: "pointer" }}>All</span>
-          <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.4)", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer" }}>Unread</span>
+          <span 
+            onClick={() => setShowUnreadOnly(false)}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: !showUnreadOnly ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: !showUnreadOnly ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+          >
+            All
+          </span>
+          <span 
+            onClick={() => setShowUnreadOnly(true)}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: showUnreadOnly ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: showUnreadOnly ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+          >
+            Unread
+          </span>
           <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.4)", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer" }}>Favorites</span>
         </div>
         
@@ -602,17 +613,27 @@ export default function ChatPage() {
                     alignItems: "center",
                     padding: "12px 15px",
                     cursor: "pointer",
+                    background: "transparent",
                     transition: "background 0.2s ease",
-                    gap: "15px"
+                    gap: "15px",
+                    position: "relative"
                   }}
                   className="hover:bg-slate-800/50"
                 >
-                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
                     {u.name.charAt(0).toUpperCase()}
                   </div>
-                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
-                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", marginBottom: "3px" }}>{u.name}</div>
-                    <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{u.email}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
+                      <span style={{ fontWeight: "600", fontSize: "1.05rem", color: "var(--text-light)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {u.name}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {u.email}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))
@@ -628,6 +649,13 @@ export default function ChatPage() {
             <>
               {/* Existing Chats */}
               {chats && chats.length > 0 && chats
+                .filter((chat) => {
+                  if (showUnreadOnly) {
+                    // Fallback unread detection: chat has a latest message, and it's not sent by the current user
+                    return chat.unreadCount > 0 || (chat.latestMessage && chat.latestMessage.sender._id !== user?._id);
+                  }
+                  return true;
+                })
                 .slice()
                 .sort((a, b) => {
                   const isAPinned = user?.pinnedChats?.includes(a._id);
