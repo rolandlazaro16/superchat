@@ -107,6 +107,7 @@ export default function ChatPage() {
   
   // Navigation State
   const [activeTab, setActiveTab] = useState<string>("chats");
+  const [callSearch, setCallSearch] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -799,51 +800,84 @@ export default function ChatPage() {
                   <input 
                     type="text" 
                     placeholder="Search name or number" 
+                    value={callSearch}
+                    onChange={(e) => setCallSearch(e.target.value)}
                     style={{ background: "transparent", border: "none", color: "white", outline: "none", width: "100%", fontSize: "0.95rem" }} 
                   />
                 </div>
               </div>
 
-              {/* Favorites */}
-              <div style={{ padding: "15px 20px 5px 20px" }}>
-                <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Favorites</h3>
-                <div className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
-                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
-                    <Plus size={24} />
-                  </div>
-                  <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Add favorite</div>
-                </div>
-              </div>
-
-              {/* Recent */}
-              <div style={{ padding: "15px 20px", marginTop: "10px" }}>
-                <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Recent</h3>
-                
-                {/* Mock Call Item */}
-                <div className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#fde68a", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309", fontWeight: "bold", fontSize: "1.2rem" }}>
-                    M
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
-                      <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Mu Isreal</div>
-                      <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Yesterday</div>
+              {callSearch ? (
+                <div style={{ padding: "10px 0" }}>
+                  {allUsers
+                    .filter((u: any) => u.name.toLowerCase().includes(callSearch.toLowerCase()) || u.email.toLowerCase().includes(callSearch.toLowerCase()))
+                    .map((u: any) => (
+                      <div key={u._id} className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "12px 20px", cursor: "pointer", transition: "background 0.2s" }}>
+                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div style={{ flex: 1, borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", marginBottom: "3px" }}>{u.name}</div>
+                            <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{u.email}</div>
+                          </div>
+                          <PhoneCall size={18} color="var(--text-muted)" className="hover:text-green-500 transition-colors" />
+                        </div>
+                      </div>
+                    ))}
+                  {allUsers.filter((u: any) => u.name.toLowerCase().includes(callSearch.toLowerCase()) || u.email.toLowerCase().includes(callSearch.toLowerCase())).length === 0 && (
+                    <div style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                      <div style={{ padding: "15px", background: "rgba(30, 41, 59, 0.5)", borderRadius: "50%" }}>
+                        <Search size={32} color="var(--text-muted)" />
+                      </div>
+                      <p>No contacts found for "{callSearch}"</p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
-                      <PhoneIncoming size={14} color="#22c55e" />
-                      <span>Incoming</span>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {/* Favorites */}
+                  <div style={{ padding: "15px 20px 5px 20px" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Favorites</h3>
+                    <div className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
+                      <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "white", flexShrink: 0 }}>
+                        <Plus size={24} />
+                      </div>
+                      <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Add favorite</div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Footer text */}
-              <div style={{ padding: "20px", marginTop: "10px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-                <Lock size={14} color="var(--text-muted)" />
-                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                  Your personal calls are <span style={{ color: "#22c55e", fontWeight: 500 }}>end-to-end encrypted</span>
-                </span>
-              </div>
+                  {/* Recent */}
+                  <div style={{ padding: "15px 20px", marginTop: "10px" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Recent</h3>
+                    
+                    {/* Mock Call Item */}
+                    <div className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
+                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#fde68a", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
+                        M
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
+                          <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Mu Isreal</div>
+                          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Yesterday</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                          <PhoneIncoming size={14} color="#22c55e" />
+                          <span>Incoming</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer text */}
+                  <div style={{ padding: "20px", marginTop: "10px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
+                    <Lock size={14} color="var(--text-muted)" />
+                    <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                      Your personal calls are <span style={{ color: "#22c55e", fontWeight: 500 }}>end-to-end encrypted</span>
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : null}
