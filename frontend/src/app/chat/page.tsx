@@ -684,6 +684,23 @@ export default function ChatPage() {
             </>
           )}
         </div>
+
+        {/* Sidebar Footer - Profile Icon */}
+        <div style={{ padding: "15px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center" }}>
+          {user?.profilePic ? (
+            <img 
+              src={user.profilePic} 
+              alt="profile" 
+              style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }} 
+            />
+          ) : (
+            <div 
+              style={{ width: "45px", height: "45px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.3rem", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }}
+            >
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Chat Window */}
