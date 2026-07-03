@@ -266,7 +266,7 @@ export default function ChatPage() {
         </div>
         
         {/* Chats List or Search Results */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "5px 0", minHeight: 0 }}>
+        <div style={{ flex: 1, overflowY: "scroll", padding: "5px 0", minHeight: 0 }}>
           {search ? (
             searchResult.length > 0 ? (
               searchResult.map((u) => (
