@@ -104,6 +104,7 @@ export default function ChatPage() {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
   // Navigation State
   const [activeTab, setActiveTab] = useState<string>("chats");
@@ -464,19 +465,47 @@ export default function ChatPage() {
               <Settings size={22} color="var(--text-muted)" />
             </div>
             {/* Profile Icon */}
-            {user?.profilePic ? (
-              <img 
-                src={user.profilePic} 
-                alt="profile" 
-                style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }} 
-              />
-            ) : (
-              <div 
-                style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.1rem", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }}
-              >
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div style={{ position: "relative" }}>
+              {user?.profilePic ? (
+                <img 
+                  src={user.profilePic} 
+                  alt="profile" 
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }} 
+                />
+              ) : (
+                <div 
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.1rem", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }}
+                >
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              {isProfileMenuOpen && (
+                <>
+                  <div 
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} 
+                    onClick={() => setIsProfileMenuOpen(false)} 
+                  />
+                  <div 
+                    style={{ position: 'absolute', left: '45px', bottom: '0px', background: 'white', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px', padding: '10px 0', minWidth: '160px', zIndex: 100, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)', display: 'flex', flexDirection: 'column' }}
+                  >
+                    <div 
+                      className="hover:bg-gray-100 transition-colors" 
+                      style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: 500, cursor: 'pointer', color: '#e11d48' }} 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        handleLogout(); 
+                        setIsProfileMenuOpen(false); 
+                      }}
+                    >
+                      <LogOut size={20} /> Log out
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
