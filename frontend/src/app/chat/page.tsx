@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings } from "lucide-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -402,7 +402,8 @@ export default function ChatPage() {
     <>
       <style>{`
         @media (max-width: 768px) {
-          .sidebar-container { display: ${selectedChat ? 'none' : 'flex'} !important; width: 100% !important; }
+          .mini-nav { display: ${selectedChat ? 'none' : 'flex'} !important; }
+          .sidebar-container { display: ${selectedChat ? 'none' : 'flex'} !important; flex: 1 !important; width: auto !important; }
           .main-chat-container { display: ${selectedChat ? 'flex' : 'none'} !important; width: 100% !important; }
           .mobile-back-btn { display: flex !important; }
         }
@@ -411,6 +412,56 @@ export default function ChatPage() {
         }
       `}</style>
       <div style={{ display: "flex", height: "100vh", width: "100%" }}>
+        {/* Mini Navigation Bar */}
+        <div 
+          className="mini-nav"
+          style={{ 
+            width: "60px", 
+            flexShrink: 0, 
+            background: "rgba(10, 15, 30, 0.95)",
+            borderRight: "1px solid var(--border-color)", 
+            display: "flex", 
+            flexDirection: "column", 
+            alignItems: "center", 
+            padding: "15px 0",
+            zIndex: 10
+          }}
+        >
+          {/* Top Icons */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "25px", flex: 1, alignItems: "center" }}>
+            <div style={{ padding: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.1)", cursor: "pointer" }}>
+              <MessageSquare size={22} color="var(--text-light)" />
+            </div>
+            <div style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} className="hover:bg-white/5 transition-colors">
+              <Phone size={22} color="var(--text-muted)" />
+            </div>
+            <div style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} className="hover:bg-white/5 transition-colors">
+              <Users size={22} color="var(--text-muted)" />
+            </div>
+          </div>
+          
+          {/* Bottom Icons (Settings & Profile) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px", alignItems: "center" }}>
+            <div style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} className="hover:bg-white/5 transition-colors">
+              <Settings size={22} color="var(--text-muted)" />
+            </div>
+            {/* Profile Icon */}
+            {user?.profilePic ? (
+              <img 
+                src={user.profilePic} 
+                alt="profile" 
+                style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }} 
+              />
+            ) : (
+              <div 
+                style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.1rem", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }}
+              >
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Sidebar - Chat List */}
         <div
           className="sidebar-container"
@@ -685,22 +736,6 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* Sidebar Footer - Profile Icon */}
-        <div style={{ padding: "15px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center" }}>
-          {user?.profilePic ? (
-            <img 
-              src={user.profilePic} 
-              alt="profile" 
-              style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }} 
-            />
-          ) : (
-            <div 
-              style={{ width: "45px", height: "45px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.3rem", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)" }}
-            >
-              {user?.name?.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Main Chat Window */}
