@@ -5,6 +5,7 @@ import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
 import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -71,6 +72,7 @@ const ChatDropdownMenu = ({
 };
 
 export default function ChatPage() {
+  const router = useRouter();
   const { user, setUser, chats, setChats, selectedChat, setSelectedChat } = ChatState();
   const [fetchAgain, setFetchAgain] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -102,6 +104,9 @@ export default function ChatPage() {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+  
+  // Navigation State
+  const [activeTab, setActiveTab] = useState<string>("chats");
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -429,14 +434,25 @@ export default function ChatPage() {
         >
           {/* Top Icons */}
           <div style={{ display: "flex", flexDirection: "column", gap: "25px", flex: 1, alignItems: "center" }}>
-            <div style={{ padding: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.1)", cursor: "pointer" }}>
-              <MessageSquare size={22} color="var(--text-light)" />
+            <div 
+              onClick={() => setActiveTab("chats")}
+              style={{ padding: "8px", borderRadius: "50%", background: activeTab === "chats" ? "rgba(255,255,255,0.1)" : "transparent", cursor: "pointer" }} 
+              className="hover:bg-white/10 transition-colors"
+            >
+              <MessageSquare size={22} color={activeTab === "chats" ? "var(--text-light)" : "var(--text-muted)"} />
             </div>
-            <div style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} className="hover:bg-white/5 transition-colors">
+            <div 
+              style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} 
+              className="hover:bg-white/5 transition-colors"
+            >
               <Phone size={22} color="var(--text-muted)" />
             </div>
-            <div style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} className="hover:bg-white/5 transition-colors">
-              <Users size={22} color="var(--text-muted)" />
+            <div 
+              onClick={() => setActiveTab("communities")}
+              style={{ padding: "8px", borderRadius: "50%", background: activeTab === "communities" ? "rgba(255,255,255,0.1)" : "transparent", cursor: "pointer" }} 
+              className="hover:bg-white/10 transition-colors"
+            >
+              <Users size={22} color={activeTab === "communities" ? "var(--text-light)" : "var(--text-muted)"} />
             </div>
           </div>
           
@@ -475,6 +491,8 @@ export default function ChatPage() {
             overflow: "hidden",
           }}
         >
+        {activeTab === "chats" ? (
+          <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         {/* Sidebar Header */}
         <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Chats</h2>
@@ -734,9 +752,37 @@ export default function ChatPage() {
               )}
             </>
           )}
+          </div>
         </div>
-
-      </div>
+        ) : activeTab === "communities" ? (
+          <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "rgba(15, 23, 42, 0.95)" }}>
+            <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)" }}>
+              <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Communities</h2>
+              <div style={{ display: "flex", gap: "15px", color: "var(--text-light)", alignItems: "center" }}>
+                <Plus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem", textAlign: "center", flex: 1 }}>
+              <div style={{ background: "rgba(34, 197, 94, 0.1)", padding: "2rem", borderRadius: "20px", marginBottom: "2rem" }}>
+                <Users size={80} color="#22c55e" />
+              </div>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: "bold", color: "white", marginBottom: "1rem" }}>Stay connected with a community</h3>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: "1.5", marginBottom: "1.5rem" }}>
+                Communities bring members together in topic-based groups, and make it easy to get admin announcements. Any community you're added to will appear here.
+              </p>
+              <a href="#" style={{ color: "#22c55e", textDecoration: "none", fontWeight: 500, fontSize: "0.95rem", marginBottom: "2rem" }} className="hover:underline">
+                See example communities
+              </a>
+              <button 
+                style={{ background: "#22c55e", color: "white", border: "none", padding: "12px 24px", borderRadius: "24px", fontWeight: "bold", cursor: "pointer", fontSize: "1rem", width: "100%" }}
+                className="hover:bg-green-600 transition-colors"
+              >
+                Start your community
+              </button>
+            </div>
+          </div>
+        ) : null}
+        </div>
 
       {/* Main Chat Window */}
       <div className="main-chat-container" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
