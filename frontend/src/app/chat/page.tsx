@@ -357,7 +357,9 @@ export default function ChatPage() {
         config
       );
       setMessages(data);
-      socket.emit("join chat", selectedChat._id);
+      if (socket) {
+        socket.emit("join chat", selectedChat._id);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -381,7 +383,9 @@ export default function ChatPage() {
           },
           config
         );
-        socket.emit("new message", data);
+        if (socket) {
+          socket.emit("new message", data);
+        }
         setMessages([...messages, data]);
         setFetchAgain(!fetchAgain);
       } catch (error) {
@@ -462,7 +466,9 @@ export default function ChatPage() {
         },
         config
       );
-      socket.emit("new message", data);
+      if (socket) {
+        socket.emit("new message", data);
+      }
       setMessages((prev: any) => [...prev, data]);
       setFetchAgain(!fetchAgain);
     } catch (error) {
@@ -492,7 +498,7 @@ export default function ChatPage() {
     });
 
     pc.onicecandidate = (event) => {
-      if (event.candidate && targetUserId) {
+      if (event.candidate && targetUserId && socket) {
         socket.emit("ice-candidate", {
           to: targetUserId,
           candidate: event.candidate,
@@ -539,13 +545,15 @@ export default function ChatPage() {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
-      socket.emit("call user", {
-        userToCall: userToCall._id,
-        signalData: offer,
-        from: user?._id,
-        callerInfo: { name: user?.name, profilePic: user?.profilePic },
-        callType: type
-      });
+      if (socket) {
+        socket.emit("call user", {
+          userToCall: userToCall._id,
+          signalData: offer,
+          from: user?._id,
+          callerInfo: { name: user?.name, profilePic: user?.profilePic },
+          callType: type
+        });
+      }
     } catch (err) {
       console.error(err);
       stopMediaStream();
@@ -574,10 +582,12 @@ export default function ChatPage() {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       
-      socket.emit("answer call", {
-        to: incomingCallData.from,
-        signal: answer
-      });
+      if (socket) {
+        socket.emit("answer call", {
+          to: incomingCallData.from,
+          signal: answer
+        });
+      }
     } catch (err) {
       console.error(err);
       stopMediaStream();
@@ -586,7 +596,7 @@ export default function ChatPage() {
   };
 
   const endCall = () => {
-    if (callUserObj) {
+    if (callUserObj && socket) {
       socket.emit("end call", { to: callUserObj._id });
     }
     stopMediaStream();
