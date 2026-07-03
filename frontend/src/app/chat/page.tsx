@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
@@ -111,6 +111,16 @@ export default function ChatPage() {
   const [callSearch, setCallSearch] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [readChatIds, setReadChatIds] = useState<string[]>([]);
+
+  // WebRTC Video Call States
+  const [callStatus, setCallStatus] = useState<"idle" | "ringing" | "calling" | "active">("idle");
+  const [incomingCallData, setIncomingCallData] = useState<any>(null);
+  const [callUserObj, setCallUserObj] = useState<any>(null);
+  
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -372,6 +382,127 @@ export default function ChatPage() {
     }
   };
 
+  // WebRTC Setup & Call Functions
+  const setupMediaStream = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = stream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      return stream;
+    } catch (err) {
+      console.error("Error accessing media devices.", err);
+      alert("Could not access camera/microphone.");
+      return null;
+    }
+  };
+
+  const createPeerConnection = (targetUserId: string) => {
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate && targetUserId) {
+        socket.emit("ice-candidate", {
+          to: targetUserId,
+          candidate: event.candidate,
+        });
+      }
+    };
+
+    pc.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    peerConnectionRef.current = pc;
+    return pc;
+  };
+
+  const stopMediaStream = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+      localStreamRef.current = null;
+    }
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+  };
+
+  const startVideoCall = async (userToCall: any) => {
+    setCallUserObj(userToCall);
+    setCallStatus("calling");
+    
+    const stream = await setupMediaStream();
+    if (!stream) {
+      setCallStatus("idle");
+      return;
+    }
+
+    const pc = createPeerConnection(userToCall._id);
+    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+    try {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      socket.emit("call user", {
+        userToCall: userToCall._id,
+        signalData: offer,
+        from: user?._id,
+        callerInfo: { name: user?.name, profilePic: user?.profilePic }
+      });
+    } catch (err) {
+      console.error(err);
+      stopMediaStream();
+      setCallStatus("idle");
+    }
+  };
+
+  const acceptCall = async () => {
+    if (!incomingCallData) return;
+    setCallStatus("active");
+    setCallUserObj({ _id: incomingCallData.from, name: incomingCallData.callerInfo.name });
+    
+    const stream = await setupMediaStream();
+    if (!stream) {
+      setCallStatus("idle");
+      return;
+    }
+
+    const pc = createPeerConnection(incomingCallData.from);
+    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(incomingCallData.signal));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      
+      socket.emit("answer call", {
+        to: incomingCallData.from,
+        signal: answer
+      });
+    } catch (err) {
+      console.error(err);
+      stopMediaStream();
+      setCallStatus("idle");
+    }
+  };
+
+  const endCall = () => {
+    if (callUserObj) {
+      socket.emit("end call", { to: callUserObj._id });
+    }
+    stopMediaStream();
+    setCallStatus("idle");
+    setIncomingCallData(null);
+    setCallUserObj(null);
+  };
+
   useEffect(() => {
     if (user) {
       socket = io(ENDPOINT);
@@ -397,8 +528,52 @@ export default function ChatPage() {
           setMessages([...messages, newMessageReceived]);
         }
       });
+
+      // Video Call Listeners
+      socket.on("incoming call", (data: any) => {
+        setIncomingCallData(data);
+        setCallStatus("ringing");
+      });
+
+      socket.on("call accepted", async (signal: any) => {
+        setCallStatus("active");
+        if (peerConnectionRef.current) {
+          try {
+            await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(signal));
+          } catch (e) {
+            console.error("Error setting remote description", e);
+          }
+        }
+      });
+
+      socket.on("ice-candidate", async (candidate: any) => {
+        if (peerConnectionRef.current) {
+          try {
+            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (e) {
+            console.error("Error adding ice candidate", e);
+          }
+        }
+      });
+
+      socket.on("call ended", () => {
+        stopMediaStream();
+        setCallStatus("idle");
+        setIncomingCallData(null);
+        setCallUserObj(null);
+      });
     }
-  });
+
+    return () => {
+      if (socket) {
+        socket.off("message received");
+        socket.off("incoming call");
+        socket.off("call accepted");
+        socket.off("ice-candidate");
+        socket.off("call ended");
+      }
+    };
+  }, [socket, selectedChat, messages]);
 
   useEffect(() => {
     if (user) {
@@ -420,6 +595,83 @@ export default function ChatPage() {
           .mobile-back-btn { display: none !important; }
         }
       `}</style>
+
+      {/* Video Call Modal Overlay */}
+      {callStatus !== "idle" && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 15, 30, 0.95)", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          
+          {callStatus === "ringing" && incomingCallData && (
+            <div style={{ textAlign: "center", color: "white", zIndex: 10 }}>
+              <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "bold" }}>
+                {incomingCallData.callerInfo?.name?.charAt(0).toUpperCase()}
+              </div>
+              <h2 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>{incomingCallData.callerInfo?.name}</h2>
+              <p style={{ color: "var(--text-muted)", marginBottom: "30px" }}>Incoming video call...</p>
+              <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
+                <button onClick={endCall} style={{ background: "#ef4444", color: "white", padding: "15px", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Phone size={24} style={{ transform: "rotate(135deg)" }} />
+                </button>
+                <button onClick={acceptCall} style={{ background: "#22c55e", color: "white", padding: "15px", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Video size={24} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {callStatus === "calling" && callUserObj && (
+            <div style={{ textAlign: "center", color: "white", position: "absolute", zIndex: 10 }}>
+              <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "bold" }}>
+                {callUserObj?.name?.charAt(0).toUpperCase()}
+              </div>
+              <h2 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>{callUserObj?.name}</h2>
+              <p style={{ color: "var(--text-muted)", marginBottom: "30px" }}>Calling...</p>
+              <button onClick={endCall} style={{ background: "#ef4444", color: "white", padding: "15px", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+                <Phone size={24} style={{ transform: "rotate(135deg)" }} />
+              </button>
+            </div>
+          )}
+
+          {/* Active/Calling Video Elements */}
+          <div style={{ display: (callStatus === "active" || callStatus === "calling") ? "block" : "none", width: "100%", height: "100%", position: "relative" }}>
+             {/* Remote Video (Large) */}
+             <video 
+               ref={remoteVideoRef} 
+               autoPlay 
+               playsInline 
+               style={{ width: "100%", height: "100%", objectFit: "cover", display: callStatus === "active" ? "block" : "none" }}
+             />
+             
+             {/* Local Video (Small Picture in Picture) */}
+             <video 
+               ref={localVideoRef} 
+               autoPlay 
+               playsInline 
+               muted 
+               style={{ 
+                 position: "absolute", 
+                 bottom: "100px", 
+                 right: "30px", 
+                 width: "150px", 
+                 height: "220px", 
+                 objectFit: "cover", 
+                 borderRadius: "15px",
+                 border: "2px solid rgba(255,255,255,0.2)",
+                 boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+                 backgroundColor: "#000"
+               }} 
+             />
+
+             {/* Controls (Active Call) */}
+             {callStatus === "active" && (
+               <div style={{ position: "absolute", bottom: "40px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "20px" }}>
+                  <button onClick={endCall} style={{ background: "#ef4444", color: "white", padding: "15px", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Phone size={24} style={{ transform: "rotate(135deg)" }} />
+                  </button>
+               </div>
+             )}
+          </div>
+        </div>
+      )}
 
       {/* Calculate unread chats */}
       {(() => {
@@ -982,7 +1234,17 @@ export default function ChatPage() {
                 </h2>
               </div>
               <div style={{ display: "flex", gap: "20px", color: "var(--text-light)", alignItems: "center" }}>
-                <Video size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <Video 
+                  size={22} 
+                  style={{ cursor: "pointer", transition: "color 0.2s" }} 
+                  className="hover:text-white" 
+                  onClick={() => {
+                    const otherUser = !selectedChat?.isGroupChat 
+                      ? selectedChat?.users.find((u: any) => u._id !== user?._id) 
+                      : null;
+                    if (otherUser) startVideoCall(otherUser);
+                  }}
+                />
                 <Phone size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
                 <div style={{ width: "1px", height: "20px", background: "var(--border-color)", margin: "0 5px" }}></div>
                 <Search size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />

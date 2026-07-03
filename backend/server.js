@@ -37,6 +37,51 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  socket.on('setup', (userData) => {
+    socket.join(userData._id);
+    socket.emit('connected');
+  });
+
+  socket.on('join chat', (room) => {
+    socket.join(room);
+    console.log('User Joined Room: ' + room);
+  });
+
+  socket.on('new message', (newMessageRecieved) => {
+    var chat = newMessageRecieved.chat;
+    if (!chat.users) return console.log('chat.users not defined');
+
+    chat.users.forEach((user) => {
+      if (user._id == newMessageRecieved.sender._id) return;
+      socket.in(user._id).emit('message received', newMessageRecieved);
+    });
+  });
+
+  // WebRTC Signaling
+  socket.on('call user', (data) => {
+    // data: { userToCall, signalData, from, callerInfo }
+    io.to(data.userToCall).emit('incoming call', {
+      signal: data.signalData,
+      from: data.from,
+      callerInfo: data.callerInfo
+    });
+  });
+
+  socket.on('answer call', (data) => {
+    // data: { to, signal }
+    io.to(data.to).emit('call accepted', data.signal);
+  });
+  
+  socket.on('ice-candidate', (data) => {
+    // data: { to, candidate }
+    io.to(data.to).emit('ice-candidate', data.candidate);
+  });
+
+  socket.on('end call', (data) => {
+    // data: { to }
+    io.to(data.to).emit('call ended');
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
