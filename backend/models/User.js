@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   pinnedChats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
   deletedChats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
   blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  hiddenContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   clearedChats: [{ 
     chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' },
     clearedAt: { type: Date, default: Date.now }

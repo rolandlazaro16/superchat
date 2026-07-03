@@ -13,6 +13,7 @@ interface UserInfo {
   pinnedChats?: string[];
   deletedChats?: string[];
   blockedUsers?: string[];
+  hiddenContacts?: string[];
   clearedChats?: { chatId: string, clearedAt: string }[];
 }
 

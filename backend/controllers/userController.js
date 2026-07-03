@@ -13,7 +13,7 @@ const allUsers = async (req, res) => {
       }
     : {};
 
-  const query = { ...keyword, _id: { $ne: req.user._id } };
+  const query = { ...keyword, _id: { $ne: req.user._id, $nin: req.user.hiddenContacts || [] } };
   console.log("Fetching all users with query:", JSON.stringify(query));
   const users = await User.find(query).select("-password");
   console.log("Found users count:", users.length);
@@ -36,4 +36,20 @@ const toggleBlockUser = async (req, res) => {
   }
 };
 
-module.exports = { allUsers, toggleBlockUser };
+const toggleHideContact = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const targetId = req.params.id;
+    if (user.hiddenContacts.includes(targetId)) {
+      user.hiddenContacts = user.hiddenContacts.filter(id => id.toString() !== targetId);
+    } else {
+      user.hiddenContacts.push(targetId);
+    }
+    await user.save();
+    res.status(200).json(user.hiddenContacts);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+module.exports = { allUsers, toggleBlockUser, toggleHideContact };

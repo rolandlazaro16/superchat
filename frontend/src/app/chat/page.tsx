@@ -30,6 +30,7 @@ const ChatDropdownMenu = ({
   onClear,
   onDelete,
   onBlock,
+  onHide,
   isPinned = false
 }: { 
   closeMenu: () => void;
@@ -37,6 +38,7 @@ const ChatDropdownMenu = ({
   onClear?: () => void;
   onDelete?: () => void;
   onBlock?: () => void;
+  onHide?: () => void;
   isPinned?: boolean;
 }) => {
   return (
@@ -61,6 +63,8 @@ const ChatDropdownMenu = ({
         {onClear && <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); onClear(); closeMenu(); }}><MinusCircle size={16} /> Clear chat</div>}
         
         {onDelete && <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={(e) => { e.stopPropagation(); onDelete(); closeMenu(); }}><Trash2 size={16} /> Delete chat</div>}
+        
+        {onHide && <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={(e) => { e.stopPropagation(); onHide(); closeMenu(); }}><Trash2 size={16} /> Remove contact</div>}
       </div>
     </>
   );
@@ -203,6 +207,25 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleHideContact = async (userId: string) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      
+      // Optimistic update
+      setAllUsers(allUsers.filter((u: any) => u._id !== userId));
+      
+      const { data } = await axios.put(`${ENDPOINT}/api/user/${userId}/hide`, {}, config);
+      if (user) {
+        const updatedUser = { ...user, hiddenContacts: data };
+        setUser(updatedUser);
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error(error);
+      fetchAllUsers(); // Revert on error
     }
   };
 
@@ -564,6 +587,7 @@ export default function ChatPage() {
                     <ChatDropdownMenu 
                       closeMenu={() => setOpenMenuId(null)} 
                       onBlock={() => handleBlockUser(u._id)}
+                      onHide={() => handleHideContact(u._id)}
                     />
                   )}
 
