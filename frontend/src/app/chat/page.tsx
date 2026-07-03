@@ -223,8 +223,8 @@ export default function ChatPage() {
       {/* Sidebar - Chat List */}
       <div
         style={{
-          width: "35%",
-          minWidth: "320px",
+          width: "350px",
+          flexShrink: 0,
           borderRight: "1px solid var(--border-color)",
           display: "flex",
           flexDirection: "column",
