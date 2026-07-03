@@ -114,6 +114,7 @@ export default function ChatPage() {
 
   // WebRTC Video Call States
   const [callStatus, setCallStatus] = useState<"idle" | "ringing" | "calling" | "active">("idle");
+  const [callType, setCallType] = useState<"video" | "audio" | null>(null);
   const [incomingCallData, setIncomingCallData] = useState<any>(null);
   const [callUserObj, setCallUserObj] = useState<any>(null);
   
@@ -383,9 +384,9 @@ export default function ChatPage() {
   };
 
   // WebRTC Setup & Call Functions
-  const setupMediaStream = async () => {
+  const setupMediaStream = async (type: "video" | "audio") => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: type === "video", audio: true });
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
@@ -433,11 +434,12 @@ export default function ChatPage() {
     }
   };
 
-  const startVideoCall = async (userToCall: any) => {
+  const startCall = async (userToCall: any, type: "video" | "audio") => {
+    setCallType(type);
     setCallUserObj(userToCall);
     setCallStatus("calling");
     
-    const stream = await setupMediaStream();
+    const stream = await setupMediaStream(type);
     if (!stream) {
       setCallStatus("idle");
       return;
@@ -454,12 +456,14 @@ export default function ChatPage() {
         userToCall: userToCall._id,
         signalData: offer,
         from: user?._id,
-        callerInfo: { name: user?.name, profilePic: user?.profilePic }
+        callerInfo: { name: user?.name, profilePic: user?.profilePic },
+        callType: type
       });
     } catch (err) {
       console.error(err);
       stopMediaStream();
       setCallStatus("idle");
+      setCallType(null);
     }
   };
 
@@ -468,9 +472,10 @@ export default function ChatPage() {
     setCallStatus("active");
     setCallUserObj({ _id: incomingCallData.from, name: incomingCallData.callerInfo.name });
     
-    const stream = await setupMediaStream();
+    const stream = await setupMediaStream(callType || "video");
     if (!stream) {
       setCallStatus("idle");
+      setCallType(null);
       return;
     }
 
@@ -499,6 +504,7 @@ export default function ChatPage() {
     }
     stopMediaStream();
     setCallStatus("idle");
+    setCallType(null);
     setIncomingCallData(null);
     setCallUserObj(null);
   };
@@ -532,6 +538,7 @@ export default function ChatPage() {
       // Video Call Listeners
       socket.on("incoming call", (data: any) => {
         setIncomingCallData(data);
+        setCallType(data.callType || "video");
         setCallStatus("ringing");
       });
 
@@ -559,6 +566,7 @@ export default function ChatPage() {
       socket.on("call ended", () => {
         stopMediaStream();
         setCallStatus("idle");
+        setCallType(null);
         setIncomingCallData(null);
         setCallUserObj(null);
       });
@@ -606,13 +614,13 @@ export default function ChatPage() {
                 {incomingCallData.callerInfo?.name?.charAt(0).toUpperCase()}
               </div>
               <h2 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>{incomingCallData.callerInfo?.name}</h2>
-              <p style={{ color: "var(--text-muted)", marginBottom: "30px" }}>Incoming video call...</p>
+              <p style={{ color: "var(--text-muted)", marginBottom: "30px" }}>Incoming {callType} call...</p>
               <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
                 <button onClick={endCall} style={{ background: "#ef4444", color: "white", padding: "15px", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Phone size={24} style={{ transform: "rotate(135deg)" }} />
                 </button>
                 <button onClick={acceptCall} style={{ background: "#22c55e", color: "white", padding: "15px", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Video size={24} />
+                  {callType === "video" ? <Video size={24} /> : <Phone size={24} />}
                 </button>
               </div>
             </div>
@@ -632,13 +640,24 @@ export default function ChatPage() {
           )}
 
           {/* Active/Calling Video Elements */}
-          <div style={{ display: (callStatus === "active" || callStatus === "calling") ? "block" : "none", width: "100%", height: "100%", position: "relative" }}>
+          <div style={{ display: (callStatus === "active" || callStatus === "calling") ? "flex" : "none", width: "100%", height: "100%", position: "relative", alignItems: "center", justifyContent: "center", background: "#0f172a" }}>
+             
+             {callType === "audio" && callStatus === "active" && (
+                <div style={{ textAlign: "center", color: "white" }}>
+                  <div style={{ width: "120px", height: "120px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", fontWeight: "bold" }}>
+                    {callUserObj?.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <h2 style={{ fontSize: "2rem", marginBottom: "10px" }}>{callUserObj?.name}</h2>
+                  <p style={{ color: "var(--text-muted)" }}>00:00</p>
+                </div>
+             )}
+
              {/* Remote Video (Large) */}
              <video 
                ref={remoteVideoRef} 
                autoPlay 
                playsInline 
-               style={{ width: "100%", height: "100%", objectFit: "cover", display: callStatus === "active" ? "block" : "none" }}
+               style={{ width: "100%", height: "100%", objectFit: "cover", display: (callStatus === "active" && callType === "video") ? "block" : "none" }}
              />
              
              {/* Local Video (Small Picture in Picture) */}
@@ -657,7 +676,8 @@ export default function ChatPage() {
                  borderRadius: "15px",
                  border: "2px solid rgba(255,255,255,0.2)",
                  boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
-                 backgroundColor: "#000"
+                 backgroundColor: "#000",
+                 display: callType === "video" ? "block" : "none"
                }} 
              />
 
@@ -1242,10 +1262,20 @@ export default function ChatPage() {
                     const otherUser = !selectedChat?.isGroupChat 
                       ? selectedChat?.users.find((u: any) => u._id !== user?._id) 
                       : null;
-                    if (otherUser) startVideoCall(otherUser);
+                    if (otherUser) startCall(otherUser, "video");
                   }}
                 />
-                <Phone size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <Phone 
+                  size={20} 
+                  style={{ cursor: "pointer", transition: "color 0.2s" }} 
+                  className="hover:text-white"
+                  onClick={() => {
+                    const otherUser = !selectedChat?.isGroupChat 
+                      ? selectedChat?.users.find((u: any) => u._id !== user?._id) 
+                      : null;
+                    if (otherUser) startCall(otherUser, "audio");
+                  }} 
+                />
                 <div style={{ width: "1px", height: "20px", background: "var(--border-color)", margin: "0 5px" }}></div>
                 <Search size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
                 <MoreVertical size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
