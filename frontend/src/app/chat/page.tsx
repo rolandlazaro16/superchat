@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, MailUnread } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail } from "lucide-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -38,7 +38,7 @@ const ChatDropdownMenu = ({ closeMenu }: { closeMenu: () => void }) => {
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Archive size={16} /> Archive chat</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><BellOff size={16} /> Mute notifications</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Pin size={16} /> Pin chat</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><MailUnread size={16} /> Mark as unread</div>
+        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Mail size={16} /> Mark as unread</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Heart size={16} /> Add to Favorites</div>
         <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><List size={16} /> Add to list</div>
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
