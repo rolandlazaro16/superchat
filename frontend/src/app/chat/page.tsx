@@ -49,16 +49,18 @@ const ChatDropdownMenu = ({
         onClick={(e) => e.stopPropagation()}
         style={{ position: 'absolute', right: '30px', top: '40px', background: 'rgba(30, 41, 59, 1)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '8px 0', minWidth: '220px', zIndex: 100, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', display: 'flex', flexDirection: 'column' }}
       >
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Archive size={16} /> Archive chat</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><BellOff size={16} /> Mute notifications</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={() => { if (onPin) onPin(); closeMenu(); }}><Pin size={16} /> {isPinned ? "Unpin chat" : "Pin chat"}</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Mail size={16} /> Mark as unread</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><Heart size={16} /> Add to Favorites</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={closeMenu}><List size={16} /> Add to list</div>
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={() => { if (onBlock) onBlock(); closeMenu(); }}><Ban size={16} /> Block</div>
-        <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={() => { if (onClear) onClear(); closeMenu(); }}><MinusCircle size={16} /> Clear chat</div>
-        <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={() => { if (onDelete) onDelete(); closeMenu(); }}><Trash2 size={16} /> Delete chat</div>
+        {onPin && <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); onPin(); closeMenu(); }}><Pin size={16} /> {isPinned ? "Unpin chat" : "Pin chat"}</div>}
+        
+        {onBlock && (
+          <>
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
+            <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); onBlock(); closeMenu(); }}><Ban size={16} /> Block User</div>
+          </>
+        )}
+        
+        {onClear && <div className="hover:bg-slate-700/80 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); onClear(); closeMenu(); }}><MinusCircle size={16} /> Clear chat</div>}
+        
+        {onDelete && <div className="hover:bg-red-500/20 transition-colors" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} onClick={(e) => { e.stopPropagation(); onDelete(); closeMenu(); }}><Trash2 size={16} /> Delete chat</div>}
       </div>
     </>
   );
