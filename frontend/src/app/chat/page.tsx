@@ -353,9 +353,6 @@ export default function ChatPage() {
               ))}
               
               {/* All Users / Contacts */}
-              <div style={{ padding: "10px 15px", fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <Users size={16} /> Contacts / Start a new chat
-              </div>
               {allUsers.length > 0 ? allUsers.map((u) => (
                 <div
                   onClick={() => accessChat(u._id)}
@@ -365,19 +362,23 @@ export default function ChatPage() {
                     alignItems: "center",
                     padding: "12px 15px",
                     cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    gap: "15px",
-                    borderRadius: "8px",
-                    margin: "0 10px 5px 10px"
+                    background: "transparent",
+                    transition: "background 0.2s ease",
+                    gap: "15px"
                   }}
-                  className="hover:bg-slate-800 hover:scale-[1.02]"
+                  className="hover:bg-slate-800/50"
                 >
-                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "linear-gradient(135deg, var(--primary-color), #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, boxShadow: "0 4px 10px rgba(0,0,0,0.2)" }}>
+                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
                     {u.name.charAt(0).toUpperCase()}
                   </div>
-                  <div style={{ flex: 1, overflow: "hidden", paddingBottom: "5px" }}>
-                    <div style={{ fontWeight: 600, color: "white", fontSize: "1.05rem", marginBottom: "2px" }}>{u.name}</div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}><UserPlus size={14} /> {u.email}</div>
+                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
+                      <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.name}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                      <UserPlus size={14} /> 
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}</span>
+                    </div>
                   </div>
                 </div>
               )) : (
