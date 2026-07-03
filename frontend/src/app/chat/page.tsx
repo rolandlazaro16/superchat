@@ -420,7 +420,7 @@ export default function ChatPage() {
               ))}
               
               {/* All Users / Contacts */}
-              {allUsers.length > 0 ? allUsers.map((u) => (
+              {allUsers.length > 0 ? allUsers.filter(u => !chats.some(chat => !chat.isGroupChat && chat.users.some((chatUser: any) => chatUser._id === u._id))).map((u) => (
                 <div
                   onMouseEnter={() => setHoveredItemId(u._id)}
                   onMouseLeave={() => setHoveredItemId(null)}
