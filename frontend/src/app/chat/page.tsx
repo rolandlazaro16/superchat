@@ -169,18 +169,24 @@ export default function ChatPage() {
   const handleDeleteChat = async (chatId: string) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      
+      // Optimistic update for immediate feedback
+      setChats(chats.filter((c: any) => c._id !== chatId));
+      if (selectedChat?._id === chatId) {
+        setSelectedChat(null);
+      }
+
       const { data } = await axios.put(`${ENDPOINT}/api/chat/${chatId}/delete`, {}, config);
       if (user) {
         const updatedUser = { ...user, deletedChats: data };
         setUser(updatedUser);
         localStorage.setItem("userInfo", JSON.stringify(updatedUser));
       }
-      if (selectedChat?._id === chatId) {
-        setSelectedChat(null);
-      }
       setFetchAgain(!fetchAgain);
     } catch (error) {
       console.error(error);
+      // Revert if error
+      fetchChats();
     }
   };
 
