@@ -299,8 +299,10 @@ export default function ChatPage() {
                 <p>No users found for "{search}"</p>
               </div>
             )
-          ) : chats && chats.length > 0 ? (
-            chats.map((chat) => (
+          ) : (
+            <>
+              {/* Existing Chats */}
+              {chats && chats.length > 0 && chats.map((chat) => (
               <div
                 onClick={() => setSelectedChat(chat)}
                 key={chat._id}
@@ -347,11 +349,11 @@ export default function ChatPage() {
                   </div>
                 </div>
               </div>
-            ))
-          ) : (
-            <>
+              ))}
+              
+              {/* All Users / Contacts */}
               <div style={{ padding: "10px 15px", fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <Users size={16} /> Start a new chat
+                <Users size={16} /> Contacts / Start a new chat
               </div>
               {allUsers.length > 0 ? allUsers.map((u) => (
                 <div
@@ -378,7 +380,7 @@ export default function ChatPage() {
                   </div>
                 </div>
               )) : (
-                <div style={{ textAlign: "center", marginTop: "3rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                <div style={{ textAlign: "center", marginTop: "1rem", marginBottom: "3rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
                   <div style={{ padding: "15px", background: "rgba(30, 41, 59, 0.5)", borderRadius: "50%" }}>
                     <UserX size={32} color="var(--text-muted)" />
                   </div>
