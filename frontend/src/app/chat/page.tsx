@@ -678,7 +678,7 @@ export default function ChatPage() {
         socket.off("call ended");
       }
     };
-  }, [socket, selectedChat, messages]);
+  }, [socketConnected, selectedChat, messages]);
 
   useEffect(() => {
     if (user) {
