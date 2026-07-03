@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut } from "lucide-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -101,6 +101,13 @@ export default function ChatPage() {
   // Dropdown UI states
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userInfo");
+    setUser(null);
+    router.push("/");
+  };
 
   const handleRegisterNewUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,7 +419,40 @@ export default function ChatPage() {
             {user?.isAdmin && (
               <UserPlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" onClick={() => setIsRegisterModalOpen(true)} />
             )}
-            <MoreVertical size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+            <div style={{ position: "relative" }}>
+              <MoreVertical 
+                size={22} 
+                style={{ cursor: "pointer", transition: "color 0.2s" }} 
+                className="hover:text-white" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsHeaderMenuOpen(!isHeaderMenuOpen);
+                }}
+              />
+              {isHeaderMenuOpen && (
+                <>
+                  <div 
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} 
+                    onClick={() => setIsHeaderMenuOpen(false)} 
+                  />
+                  <div 
+                    style={{ position: 'absolute', right: 0, top: '30px', background: 'rgba(30, 41, 59, 1)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '8px 0', minWidth: '160px', zIndex: 100, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', display: 'flex', flexDirection: 'column' }}
+                  >
+                    <div 
+                      className="hover:bg-slate-700/80 transition-colors" 
+                      style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', cursor: 'pointer', color: '#ef4444' }} 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        handleLogout(); 
+                        setIsHeaderMenuOpen(false); 
+                      }}
+                    >
+                      <LogOut size={16} /> Logout
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
         
