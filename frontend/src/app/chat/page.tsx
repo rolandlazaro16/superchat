@@ -236,7 +236,7 @@ export default function ChatPage() {
           <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Chats</h2>
           <div style={{ display: "flex", gap: "15px", color: "var(--text-light)", alignItems: "center" }}>
             {user?.isAdmin && (
-              <UserPlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" title="Register New User" onClick={() => setIsRegisterModalOpen(true)} />
+              <UserPlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" onClick={() => setIsRegisterModalOpen(true)} />
             )}
             <MessageSquarePlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
             <MoreVertical size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />

@@ -9,6 +9,7 @@ interface UserInfo {
   email: string;
   profilePic?: string;
   token: string;
+  isAdmin?: boolean;
 }
 
 interface ChatContextType {

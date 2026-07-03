@@ -14,7 +14,9 @@ const allUsers = async (req, res) => {
     : {};
 
   const query = { ...keyword, _id: { $ne: req.user._id } };
+  console.log("Fetching all users with query:", JSON.stringify(query));
   const users = await User.find(query).select("-password");
+  console.log("Found users count:", users.length);
   res.send(users);
 };
 
