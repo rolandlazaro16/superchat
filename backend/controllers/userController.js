@@ -13,7 +13,8 @@ const allUsers = async (req, res) => {
       }
     : {};
 
-  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } }).select("-password");
+  const query = { ...keyword, _id: { $ne: req.user._id } };
+  const users = await User.find(query).select("-password");
   res.send(users);
 };
 
