@@ -229,6 +229,7 @@ export default function ChatPage() {
           display: "flex",
           flexDirection: "column",
           background: "rgba(15, 23, 42, 0.95)",
+          overflow: "hidden",
         }}
       >
         {/* Sidebar Header */}
@@ -265,7 +266,7 @@ export default function ChatPage() {
         </div>
         
         {/* Chats List or Search Results */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "5px 0" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "5px 0", minHeight: 0 }}>
           {search ? (
             searchResult.length > 0 ? (
               searchResult.map((u) => (
