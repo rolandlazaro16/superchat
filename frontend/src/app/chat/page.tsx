@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -442,10 +442,11 @@ export default function ChatPage() {
               <MessageSquare size={22} color={activeTab === "chats" ? "var(--text-light)" : "var(--text-muted)"} />
             </div>
             <div 
-              style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} 
-              className="hover:bg-white/5 transition-colors"
+              onClick={() => setActiveTab("calls")}
+              style={{ padding: "8px", borderRadius: "50%", background: activeTab === "calls" ? "rgba(255,255,255,0.1)" : "transparent", cursor: "pointer" }} 
+              className="hover:bg-white/10 transition-colors"
             >
-              <Phone size={22} color="var(--text-muted)" />
+              <Phone size={22} color={activeTab === "calls" ? "var(--text-light)" : "var(--text-muted)"} />
             </div>
             <div 
               onClick={() => setActiveTab("communities")}
@@ -779,6 +780,70 @@ export default function ChatPage() {
               >
                 Start your community
               </button>
+            </div>
+          </div>
+        ) : activeTab === "calls" ? (
+          <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "rgba(15, 23, 42, 0.95)" }}>
+            <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)" }}>
+              <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Calls</h2>
+              <div style={{ display: "flex", gap: "15px", color: "var(--text-light)", alignItems: "center" }}>
+                <PhoneCall size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+              </div>
+            </div>
+            
+            <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "10px 0" }}>
+              {/* Search Bar */}
+              <div style={{ padding: "0 15px 15px 15px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ background: "rgba(30, 41, 59, 0.7)", borderRadius: "8px", display: "flex", alignItems: "center", padding: "8px 15px", gap: "10px" }}>
+                  <Search size={18} color="var(--text-muted)" />
+                  <input 
+                    type="text" 
+                    placeholder="Search name or number" 
+                    style={{ background: "transparent", border: "none", color: "white", outline: "none", width: "100%", fontSize: "0.95rem" }} 
+                  />
+                </div>
+              </div>
+
+              {/* Favorites */}
+              <div style={{ padding: "15px 20px 5px 20px" }}>
+                <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Favorites</h3>
+                <div className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
+                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                    <Plus size={24} />
+                  </div>
+                  <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Add favorite</div>
+                </div>
+              </div>
+
+              {/* Recent */}
+              <div style={{ padding: "15px 20px", marginTop: "10px" }}>
+                <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Recent</h3>
+                
+                {/* Mock Call Item */}
+                <div className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#fde68a", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309", fontWeight: "bold", fontSize: "1.2rem" }}>
+                    M
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
+                      <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Mu Isreal</div>
+                      <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Yesterday</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                      <PhoneIncoming size={14} color="#22c55e" />
+                      <span>Incoming</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer text */}
+              <div style={{ padding: "20px", marginTop: "10px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
+                <Lock size={14} color="var(--text-muted)" />
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                  Your personal calls are <span style={{ color: "#22c55e", fontWeight: 500 }}>end-to-end encrypted</span>
+                </span>
+              </div>
             </div>
           </div>
         ) : null}
