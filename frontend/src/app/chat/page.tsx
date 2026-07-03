@@ -65,7 +65,7 @@ const ChatDropdownMenu = ({
 };
 
 export default function ChatPage() {
-  const { user, chats, setChats, selectedChat, setSelectedChat } = ChatState();
+  const { user, setUser, chats, setChats, selectedChat, setSelectedChat } = ChatState();
   const [fetchAgain, setFetchAgain] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
