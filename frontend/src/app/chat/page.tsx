@@ -117,6 +117,13 @@ export default function ChatPage() {
   const [callType, setCallType] = useState<"video" | "audio" | null>(null);
   const [incomingCallData, setIncomingCallData] = useState<any>(null);
   const [callUserObj, setCallUserObj] = useState<any>(null);
+
+  // Voice Recording States
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -380,6 +387,86 @@ export default function ChatPage() {
       } catch (error) {
         console.error(error);
       }
+    }
+  };
+
+  // Voice Recording Functions
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        if (audioChunksRef.current.length === 0) return;
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          const base64Audio = reader.result as string;
+          sendVoiceMessage(base64Audio);
+        };
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Error accessing microphone", error);
+      alert("Could not access microphone.");
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  };
+
+  const cancelVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.onstop = null; // Prevent sending
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  };
+
+  const sendVoiceMessage = async (base64Audio: string) => {
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+      };
+      const { data } = await axios.post(
+        `${ENDPOINT}/api/message`,
+        {
+          content: base64Audio,
+          chatId: selectedChat._id,
+        },
+        config
+      );
+      socket.emit("new message", data);
+      setMessages((prev: any) => [...prev, data]);
+      setFetchAgain(!fetchAgain);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -1027,7 +1114,9 @@ export default function ChatPage() {
                       <>
                         <CheckCheck size={16} color="#34B7F1" />
                         <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {chat.latestMessage.content}
+                          {chat.latestMessage.content.startsWith("data:audio/") 
+                            ? "🎵 Audio message" 
+                            : chat.latestMessage.content}
                         </span>
                       </>
                     ) : (
@@ -1289,15 +1378,19 @@ export default function ChatPage() {
                     key={m._id || i}
                     style={{
                       alignSelf: m.sender._id === user?._id ? "flex-end" : "flex-start",
-                      background: m.sender._id === user?._id ? "var(--primary-color)" : "rgba(30, 41, 59, 0.7)",
+                      background: (m.content && m.content.startsWith("data:audio/")) ? "transparent" : (m.sender._id === user?._id ? "var(--primary-color)" : "rgba(30, 41, 59, 0.7)"),
                       color: "white",
-                      padding: "8px 15px",
+                      padding: (m.content && m.content.startsWith("data:audio/")) ? "0" : "8px 15px",
                       borderRadius: "15px",
                       maxWidth: "70%",
                       wordBreak: "break-word"
                     }}
                   >
-                    {m.content}
+                    {m.content && m.content.startsWith("data:audio/") ? (
+                      <audio controls src={m.content} style={{ height: "45px", maxWidth: "250px", outline: "none" }} />
+                    ) : (
+                      m.content
+                    )}
                   </div>
                 ))
               ) : (
@@ -1340,25 +1433,45 @@ export default function ChatPage() {
                     <Smile size={24} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
                     <Plus size={26} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
                   </div>
-                  <input
-                    type="text"
-                    className="input-field"
-                    style={{ flex: 1, borderRadius: "20px", padding: "12px 20px", border: "none", background: "rgba(30, 41, 59, 0.7)", outline: "none", color: "white" }}
-                    placeholder="Type a message"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        sendMessage();
-                      }
-                    }}
-                  />
-                  {newMessage.trim() ? (
-                    <div onClick={sendMessage} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}>
-                      <Send size={20} color="white" style={{ marginLeft: "-2px" }} />
+                  {isRecording ? (
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(30, 41, 59, 0.7)", borderRadius: "20px", padding: "8px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                        <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ef4444" }} className="animate-pulse" />
+                        <span style={{ color: "white", fontWeight: 500, fontFamily: "monospace", fontSize: "1.1rem" }}>
+                          {Math.floor(recordingTime / 60).toString().padStart(2, '0')}:{(recordingTime % 60).toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+                        <Trash2 size={20} color="#ef4444" style={{ cursor: "pointer" }} onClick={cancelVoiceRecording} />
+                        <div onClick={stopVoiceRecording} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "35px", height: "35px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "transform 0.2s" }} className="hover:scale-110">
+                          <Send size={16} color="white" style={{ marginLeft: "-2px" }} />
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <Mic size={24} style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s", margin: "0 10px" }} className="hover:text-white" />
+                    <input
+                      type="text"
+                      className="input-field"
+                      style={{ flex: 1, borderRadius: "20px", padding: "12px 20px", border: "none", background: "rgba(30, 41, 59, 0.7)", outline: "none", color: "white" }}
+                      placeholder="Type a message"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          sendMessage();
+                        }
+                      }}
+                    />
+                  )}
+                  
+                  {!isRecording && (
+                    newMessage.trim() ? (
+                      <div onClick={sendMessage} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}>
+                        <Send size={20} color="white" style={{ marginLeft: "-2px" }} />
+                      </div>
+                    ) : (
+                      <Mic onClick={startVoiceRecording} size={24} style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s", margin: "0 10px" }} className="hover:text-white" />
+                    )
                   )}
                 </div>
               );
