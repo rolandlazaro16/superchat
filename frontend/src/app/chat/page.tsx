@@ -623,12 +623,20 @@ export default function ChatPage() {
   }, [selectedChat]);
 
   useEffect(() => {
-    if (socket) {
+    if (socketConnected && socket) {
       socket.on("message received", (newMessageReceived: any) => {
         if (!selectedChat || selectedChat._id !== newMessageReceived.chat._id) {
-          // You could notify the user here
+          // Notify the user or update unread count
+          setFetchAgain(prev => !prev);
         } else {
-          setMessages([...messages, newMessageReceived]);
+          setMessages(prevMessages => {
+            // Check if message already exists to avoid duplicates
+            if (prevMessages.find((m: any) => m._id === newMessageReceived._id)) {
+              return prevMessages;
+            }
+            return [...prevMessages, newMessageReceived];
+          });
+          setFetchAgain(prev => !prev);
         }
       });
 
