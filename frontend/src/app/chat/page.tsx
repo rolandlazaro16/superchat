@@ -675,32 +675,62 @@ export default function ChatPage() {
               )}
             </div>
 
-            <div className="glass-panel" style={{ padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
-              <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
-                <Smile size={24} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
-                <Plus size={26} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
-              </div>
-              <input
-                type="text"
-                className="input-field"
-                style={{ flex: 1, borderRadius: "20px", padding: "12px 20px", border: "none", background: "rgba(30, 41, 59, 0.7)", outline: "none", color: "white" }}
-                placeholder="Type a message"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    sendMessage();
-                  }
-                }}
-              />
-              {newMessage.trim() ? (
-                <div onClick={sendMessage} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}>
-                  <Send size={20} color="white" style={{ marginLeft: "-2px" }} />
+            {(() => {
+              const otherUser = !selectedChat?.isGroupChat 
+                ? selectedChat?.users.find((u: any) => u._id !== user?._id) 
+                : null;
+              const isBlocked = otherUser && user?.blockedUsers?.includes(otherUser._id);
+
+              if (isBlocked) {
+                return (
+                  <div className="glass-panel" style={{ padding: "15px 1.5rem", display: "flex", justifyContent: "center", gap: "20px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
+                    <button 
+                      onClick={() => handleDeleteChat(selectedChat._id)}
+                      style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "24px", background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", cursor: "pointer", fontWeight: 500 }}
+                      className="hover:bg-red-500/20 transition-colors"
+                    >
+                      <Trash2 size={18} /> Delete chat
+                    </button>
+                    <button 
+                      onClick={() => handleBlockUser(otherUser._id)}
+                      style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "24px", background: "rgba(34, 197, 94, 0.1)", color: "#22c55e", border: "1px solid rgba(34, 197, 94, 0.3)", cursor: "pointer", fontWeight: 500 }}
+                      className="hover:bg-green-500/20 transition-colors"
+                    >
+                      <Ban size={18} style={{ transform: "rotate(45deg)" }} /> Unblock
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="glass-panel" style={{ padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
+                  <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
+                    <Smile size={24} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                    <Plus size={26} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                  </div>
+                  <input
+                    type="text"
+                    className="input-field"
+                    style={{ flex: 1, borderRadius: "20px", padding: "12px 20px", border: "none", background: "rgba(30, 41, 59, 0.7)", outline: "none", color: "white" }}
+                    placeholder="Type a message"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        sendMessage();
+                      }
+                    }}
+                  />
+                  {newMessage.trim() ? (
+                    <div onClick={sendMessage} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}>
+                      <Send size={20} color="white" style={{ marginLeft: "-2px" }} />
+                    </div>
+                  ) : (
+                    <Mic size={24} style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s", margin: "0 10px" }} className="hover:text-white" />
+                  )}
                 </div>
-              ) : (
-                <Mic size={24} style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s", margin: "0 10px" }} className="hover:text-white" />
-              )}
-            </div>
+              );
+            })()}
           </>
         ) : (
           <div className="flex-center" style={{ flex: 1, height: "100%", fontSize: "1.5rem", color: "var(--text-muted)" }}>
