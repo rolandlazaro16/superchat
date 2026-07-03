@@ -90,6 +90,10 @@ export default function ChatPage() {
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
   
+  // Block User Modal States
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [userToBlock, setUserToBlock] = useState<any>(null);
+  
   // Dropdown UI states
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -208,6 +212,11 @@ export default function ChatPage() {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const confirmBlockUser = (userObj: any) => {
+    setUserToBlock(userObj);
+    setIsBlockModalOpen(true);
   };
 
   const handleHideContact = async (userId: string) => {
@@ -508,7 +517,7 @@ export default function ChatPage() {
                     onDelete={() => handleDeleteChat(chat._id)}
                     onBlock={() => {
                       const otherUser = chat.users.find((u: any) => u._id !== user?._id);
-                      if (otherUser) handleBlockUser(otherUser._id);
+                      if (otherUser) confirmBlockUser(otherUser);
                     }}
                     isPinned={user?.pinnedChats?.includes(chat._id) || false}
                   />
@@ -586,7 +595,7 @@ export default function ChatPage() {
                   {openMenuId === u._id && (
                     <ChatDropdownMenu 
                       closeMenu={() => setOpenMenuId(null)} 
-                      onBlock={() => handleBlockUser(u._id)}
+                      onBlock={() => confirmBlockUser(u)}
                       onHide={() => handleHideContact(u._id)}
                     />
                   )}
@@ -726,6 +735,43 @@ export default function ChatPage() {
                 {registerLoading ? "Registering..." : "Register User"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Block Confirmation Modal */}
+      {isBlockModalOpen && userToBlock && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "12px", background: "white", color: "#1f2937" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 500, marginBottom: "1rem" }}>
+              Block {userToBlock.name}?
+            </h2>
+            <p style={{ fontSize: "0.95rem", color: "#6b7280", marginBottom: "1.5rem", lineHeight: "1.5" }}>
+              This person won't be able to message or call you. They won't know you blocked or reported them.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button 
+                onClick={() => {
+                  setIsBlockModalOpen(false);
+                  setUserToBlock(null);
+                }} 
+                style={{ padding: "8px 16px", borderRadius: "20px", border: "1px solid #d1d5db", background: "transparent", color: "#374151", fontWeight: 500, cursor: "pointer", fontSize: "0.9rem" }}
+                className="hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  handleBlockUser(userToBlock._id);
+                  setIsBlockModalOpen(false);
+                  setUserToBlock(null);
+                }} 
+                style={{ padding: "8px 16px", borderRadius: "20px", border: "none", background: "#ef4444", color: "white", fontWeight: 500, cursor: "pointer", fontSize: "0.9rem" }}
+                className="hover:bg-red-600 transition-colors"
+              >
+                Block
+              </button>
+            </div>
           </div>
         </div>
       )}
