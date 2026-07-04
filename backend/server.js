@@ -38,22 +38,30 @@ io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
   socket.on('setup', (userData) => {
-    socket.join(userData._id);
-    socket.emit('connected');
+    if (userData && userData._id) {
+      const roomId = userData._id.toString();
+      socket.join(roomId);
+      console.log('User Joined Room:', roomId);
+      socket.emit('connected');
+    }
   });
 
   socket.on('join chat', (room) => {
-    socket.join(room);
-    console.log('User Joined Room: ' + room);
+    socket.join(room.toString());
+    console.log('User Joined Chat Room: ' + room);
   });
 
   socket.on('new message', (newMessageRecieved) => {
     var chat = newMessageRecieved.chat;
-    if (!chat.users) return console.log('chat.users not defined');
+    if (!chat || !chat.users) return console.log('chat.users not defined');
 
     chat.users.forEach((user) => {
-      const userId = user._id ? user._id : user;
-      if (userId == newMessageRecieved.sender._id) return;
+      const userId = user._id ? user._id.toString() : user.toString();
+      const senderId = newMessageRecieved.sender._id ? newMessageRecieved.sender._id.toString() : newMessageRecieved.sender.toString();
+      
+      if (userId === senderId) return;
+      
+      console.log(`Emitting message from ${senderId} to room ${userId}`);
       socket.in(userId).emit('message received', newMessageRecieved);
     });
   });
