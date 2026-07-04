@@ -476,7 +476,8 @@ export default function ChatPage() {
     }
   };
 
-  // WebRTC Setup & Call Functions
+  const iceCandidateQueue = useRef<any[]>([]);
+
   const setupMediaStream = async (type: "video" | "audio") => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: type === "video", audio: true });
@@ -508,7 +509,11 @@ export default function ChatPage() {
 
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+        if (event.streams && event.streams[0]) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        } else {
+          remoteVideoRef.current.srcObject = new MediaStream([event.track]);
+        }
       }
     };
 
@@ -525,12 +530,27 @@ export default function ChatPage() {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
+    iceCandidateQueue.current = [];
+  };
+
+  const processIceQueue = async (pc: RTCPeerConnection) => {
+    if (iceCandidateQueue.current.length > 0) {
+      for (const candidate of iceCandidateQueue.current) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error("Error adding queued ice candidate", e);
+        }
+      }
+      iceCandidateQueue.current = [];
+    }
   };
 
   const startCall = async (userToCall: any, type: "video" | "audio") => {
     setCallType(type);
     setCallUserObj(userToCall);
     setCallStatus("calling");
+    iceCandidateQueue.current = [];
     
     const stream = await setupMediaStream(type);
     if (!stream) {
@@ -566,6 +586,7 @@ export default function ChatPage() {
     if (!incomingCallData) return;
     setCallStatus("active");
     setCallUserObj({ _id: incomingCallData.from, name: incomingCallData.callerInfo.name });
+    iceCandidateQueue.current = [];
     
     const stream = await setupMediaStream(callType || "video");
     if (!stream) {
@@ -579,6 +600,8 @@ export default function ChatPage() {
 
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(incomingCallData.signal));
+      await processIceQueue(pc);
+      
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       
@@ -675,6 +698,7 @@ export default function ChatPage() {
         if (peerConnectionRef.current) {
           try {
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(signal));
+            await processIceQueue(peerConnectionRef.current);
           } catch (e) {
             console.error("Error setting remote description", e);
           }
@@ -684,7 +708,11 @@ export default function ChatPage() {
       socket.on("ice-candidate", async (candidate: any) => {
         if (peerConnectionRef.current) {
           try {
-            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+            if (peerConnectionRef.current.remoteDescription) {
+              await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+            } else {
+              iceCandidateQueue.current.push(candidate);
+            }
           } catch (e) {
             console.error("Error adding ice candidate", e);
           }
