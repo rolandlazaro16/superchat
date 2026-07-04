@@ -5,7 +5,7 @@ const generateToken = require('../utils/generateToken');
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, profilePic } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -18,6 +18,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
+      profilePic,
     });
 
     if (user) {
