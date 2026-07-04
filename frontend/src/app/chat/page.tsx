@@ -484,6 +484,7 @@ export default function ChatPage() {
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
+        localVideoRef.current.play().catch(e => console.error("Local play error:", e));
       }
       return stream;
     } catch (err) {
@@ -495,7 +496,11 @@ export default function ChatPage() {
 
   const createPeerConnection = (targetUserId: string) => {
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:global.stun.twilio.com:3478" },
+        { urls: "stun:stun.cloudflare.com:3478" }
+      ]
     });
 
     pc.onicecandidate = (event) => {
@@ -514,6 +519,7 @@ export default function ChatPage() {
         } else {
           remoteVideoRef.current.srcObject = new MediaStream([event.track]);
         }
+        remoteVideoRef.current.play().catch(e => console.error("Error playing remote video:", e));
       }
     };
 
