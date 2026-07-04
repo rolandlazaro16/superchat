@@ -814,12 +814,16 @@ export default function ChatPage() {
                 </div>
              )}
 
-             {/* Remote Video (Large) */}
+             {/* Remote Video/Audio Element (Large) */}
              <video 
                ref={remoteVideoRef} 
                autoPlay 
                playsInline 
-               style={{ width: "100%", height: "100%", objectFit: "cover", display: (callStatus === "active" && callType === "video") ? "block" : "none" }}
+               style={
+                 callType === "video" 
+                   ? { width: "100%", height: "100%", objectFit: "cover", display: "block" }
+                   : { width: "1px", height: "1px", position: "absolute", opacity: 0, pointerEvents: "none" }
+               }
              />
              
              {/* Local Video (Small Picture in Picture) */}
