@@ -240,6 +240,8 @@ export default function ChatPage() {
 
   const [messageToDelete, setMessageToDelete] = useState<any | null>(null);
   const [isDeleteMessageModalOpen, setIsDeleteMessageModalOpen] = useState(false);
+  const [isChatMenuOpen, setIsChatMenuOpen] = useState(false);
+  const [isContactInfoModalOpen, setIsContactInfoModalOpen] = useState(false);
 
   const handleDeleteMessage = async (type: 'for_me' | 'for_everyone') => {
     if (!messageToDelete) return;
@@ -1492,7 +1494,35 @@ export default function ChatPage() {
                 />
                 <div style={{ width: "1px", height: "20px", background: "var(--border-color)", margin: "0 5px" }}></div>
                 <Search size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
-                <MoreVertical size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                <div style={{ position: "relative" }}>
+                  <MoreVertical 
+                    size={20} 
+                    style={{ cursor: "pointer", transition: "color 0.2s" }} 
+                    className="hover:text-white" 
+                    onClick={() => setIsChatMenuOpen(!isChatMenuOpen)}
+                  />
+                  {isChatMenuOpen && (
+                    <div style={{ position: "absolute", top: "30px", right: 0, background: "rgba(30, 41, 59, 0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "8px 0", minWidth: "160px", zIndex: 100, boxShadow: "0 10px 25px rgba(0,0,0,0.5)" }}>
+                      <div 
+                        style={{ padding: "10px 20px", cursor: "pointer", color: "white", fontSize: "0.95rem", transition: "background 0.2s" }} 
+                        className="hover:bg-slate-700/50"
+                        onClick={() => {
+                          setIsChatMenuOpen(false);
+                          setIsContactInfoModalOpen(true);
+                        }}
+                      >
+                        Contact info
+                      </div>
+                      <div 
+                        style={{ padding: "10px 20px", cursor: "pointer", color: "white", fontSize: "0.95rem", transition: "background 0.2s" }} 
+                        className="hover:bg-slate-700/50"
+                        onClick={() => setIsChatMenuOpen(false)}
+                      >
+                        Close chat
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -1748,6 +1778,80 @@ export default function ChatPage() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+      {/* Contact Info Modal */}
+      {isContactInfoModalOpen && selectedChat && !selectedChat.isGroupChat && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", borderRadius: "16px", background: "rgba(15, 23, 42, 0.95)", color: "white", overflow: "hidden", position: "relative", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}>
+            
+            {/* Header / Cover */}
+            <div style={{ height: "120px", background: "linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%)", position: "relative" }}>
+              <button 
+                onClick={() => setIsContactInfoModalOpen(false)}
+                style={{ position: "absolute", top: "15px", left: "15px", background: "rgba(0,0,0,0.3)", border: "none", color: "white", width: "30px", height: "30px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.2rem", transition: "background 0.2s" }}
+                className="hover:bg-black/50"
+              >✕</button>
+            </div>
+            
+            {/* Profile Content */}
+            <div style={{ padding: "0 20px 20px", textAlign: "center", marginTop: "-50px" }}>
+              {(() => {
+                const contactUser = selectedChat.users.find((u: any) => u._id !== user?._id);
+                return (
+                  <>
+                    {/* Profile Pic */}
+                    <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", color: "white", fontSize: "3rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 15px", border: "4px solid rgba(15, 23, 42, 1)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.5)" }}>
+                      {contactUser?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    
+                    <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "0 0 5px 0" }}>{contactUser?.name}</h2>
+                    <p style={{ color: "var(--text-muted)", margin: "0 0 5px 0", fontSize: "0.95rem" }}>{contactUser?.email}</p>
+                    <p style={{ color: "#10b981", margin: "0 0 20px 0", fontSize: "0.85rem", fontWeight: 500 }}>Open <span style={{ color: "var(--text-muted)" }}>24 hours</span></p>
+                    
+                    {/* Action Buttons */}
+                    <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "25px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", cursor: "pointer" }}>
+                        <div 
+                          className="hover:bg-slate-700 transition-colors"
+                          style={{ width: "45px", height: "45px", borderRadius: "50%", background: "rgba(30, 41, 59, 0.7)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-light)" }}
+                          onClick={() => { setIsContactInfoModalOpen(false); startCall(contactUser, "audio"); }}
+                        >
+                          <Phone size={20} />
+                        </div>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>Audio</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", cursor: "pointer" }}>
+                        <div 
+                          className="hover:bg-slate-700 transition-colors"
+                          style={{ width: "45px", height: "45px", borderRadius: "50%", background: "rgba(30, 41, 59, 0.7)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-light)" }}
+                          onClick={() => { setIsContactInfoModalOpen(false); startCall(contactUser, "video"); }}
+                        >
+                          <Video size={20} />
+                        </div>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>Video</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", cursor: "pointer" }}>
+                        <div 
+                          className="hover:bg-slate-700 transition-colors"
+                          style={{ width: "45px", height: "45px", borderRadius: "50%", background: "rgba(30, 41, 59, 0.7)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-light)" }}
+                        >
+                          <Search size={20} />
+                        </div>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>Search</span>
+                      </div>
+                    </div>
+                    
+                    {/* Additional Info matching the screenshot */}
+                    <div style={{ textAlign: "left", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "15px" }}>
+                      <p style={{ fontSize: "0.95rem", color: "var(--text-light)", marginBottom: "15px" }}>This is a personal account.</p>
+                      <p style={{ fontSize: "0.95rem", color: "var(--text-light)" }}>Superchat Member</p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       )}
