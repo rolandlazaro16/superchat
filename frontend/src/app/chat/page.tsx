@@ -607,27 +607,38 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
+    let localSocket: any = null;
+    
     if (user) {
-      socket = io(ENDPOINT);
+      // Force a new connection to avoid caching issues across logouts/logins
+      localSocket = io(ENDPOINT, { forceNew: true });
+      socket = localSocket; // Update global reference for other functions
       
-      socket.on("connect", () => {
+      localSocket.on("connect", () => {
         console.log("Socket connected natively, sending setup...");
-        socket.emit("setup", user);
+        localSocket.emit("setup", user);
       });
 
-      socket.on("connected", () => {
+      localSocket.on("connected", () => {
         console.log("Backend acknowledged setup. Socket fully connected.");
         setSocketConnected(true);
       });
 
-      socket.on("connect_error", (err) => {
-        console.error("Socket connection error:", err.message);
+      localSocket.on("disconnect", () => {
+        console.log("Socket disconnected.");
+        setSocketConnected(false);
       });
 
-      return () => {
-        socket.disconnect();
-      };
+      localSocket.on("connect_error", (err: any) => {
+        console.error("Socket connection error:", err.message);
+      });
     }
+
+    return () => {
+      if (localSocket) {
+        localSocket.disconnect();
+      }
+    };
   }, [user]);
 
   useEffect(() => {
