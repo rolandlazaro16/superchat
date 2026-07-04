@@ -66,7 +66,17 @@ const fetchChats = async (req, res) => {
           path: "latestMessage.sender",
           select: "name profilePic email",
         });
-        res.status(200).send(results);
+
+        // Hide latest message if it was deleted by the user
+        const finalResults = results.map(chat => {
+          if (chat.latestMessage && chat.latestMessage.deletedBy && chat.latestMessage.deletedBy.includes(req.user._id)) {
+            // Set content to indicate it's deleted
+            chat.latestMessage.content = "🚫 Message deleted";
+          }
+          return chat;
+        });
+
+        res.status(200).send(finalResults);
       });
   } catch (error) {
     res.status(400).json({ message: error.message });

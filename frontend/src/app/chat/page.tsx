@@ -251,8 +251,16 @@ export default function ChatPage() {
         ...config
       });
 
-      // Optimistic UI update
+      // Optimistic UI update for chat body
       setMessages((prev: any) => prev.filter((m: any) => m._id !== messageToDelete._id));
+      
+      // Optimistic UI update for sidebar
+      setChats((prevChats: any) => prevChats.map((c: any) => {
+        if (c.latestMessage && c.latestMessage._id === messageToDelete._id) {
+           return { ...c, latestMessage: { ...c.latestMessage, content: "🚫 Message deleted" } };
+        }
+        return c;
+      }));
 
       if (type === 'for_everyone' && socket) {
         socket.emit("message deleted", messageToDelete);
@@ -762,6 +770,12 @@ export default function ChatPage() {
 
       socket.on("message deleted", (deletedMessage: any) => {
         setMessages((prevMessages) => prevMessages.filter((m: any) => m._id !== deletedMessage._id));
+        setChats((prevChats: any) => prevChats.map((c: any) => {
+          if (c.latestMessage && c.latestMessage._id === deletedMessage._id) {
+             return { ...c, latestMessage: { ...c.latestMessage, content: "🚫 Message deleted" } };
+          }
+          return c;
+        }));
       });
     }
 
