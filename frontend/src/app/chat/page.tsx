@@ -608,7 +608,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (user) {
-      socket = io(ENDPOINT, { transports: ["websocket"] });
+      socket = io(ENDPOINT);
       
       socket.on("connect", () => {
         console.log("Socket connected natively, sending setup...");
