@@ -608,9 +608,21 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (user) {
-      socket = io(ENDPOINT);
-      socket.emit("setup", user);
-      socket.on("connected", () => setSocketConnected(true));
+      socket = io(ENDPOINT, { transports: ["websocket"] });
+      
+      socket.on("connect", () => {
+        console.log("Socket connected natively, sending setup...");
+        socket.emit("setup", user);
+      });
+
+      socket.on("connected", () => {
+        console.log("Backend acknowledged setup. Socket fully connected.");
+        setSocketConnected(true);
+      });
+
+      socket.on("connect_error", (err) => {
+        console.error("Socket connection error:", err.message);
+      });
 
       return () => {
         socket.disconnect();
