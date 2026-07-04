@@ -66,6 +66,21 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('message deleted', (deletedMessage) => {
+    var chat = deletedMessage.chat;
+    if (!chat || !chat.users) return console.log('chat.users not defined');
+
+    chat.users.forEach((user) => {
+      const userId = user._id ? user._id.toString() : user.toString();
+      const senderId = deletedMessage.sender._id ? deletedMessage.sender._id.toString() : deletedMessage.sender.toString();
+      
+      if (userId === senderId) return;
+      
+      console.log(`Emitting message deleted to room ${userId}`);
+      socket.in(userId).emit('message deleted', deletedMessage);
+    });
+  });
+
   // WebRTC Signaling
   socket.on('call user', (data) => {
     // data: { userToCall, signalData, from, callerInfo }

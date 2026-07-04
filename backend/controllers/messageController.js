@@ -12,7 +12,7 @@ const allMessages = async (req, res) => {
     
     // Check if the chat was cleared by this user
     const clearedChat = user.clearedChats?.find(c => c.chatId.toString() === chatId);
-    const query = { chat: chatId };
+    const query = { chat: chatId, deletedBy: { $ne: req.user._id } };
     
     if (clearedChat) {
       query.createdAt = { $gt: clearedChat.clearedAt };
@@ -62,4 +62,52 @@ const sendMessage = async (req, res) => {
   }
 };
 
-module.exports = { allMessages, sendMessage };
+// @desc    Delete Message (For me or For everyone)
+// @route   DELETE /api/message/:id
+// @access  Protected
+const deleteMessage = async (req, res) => {
+  try {
+    const { type } = req.body; // 'for_me' or 'for_everyone'
+    const messageId = req.params.id;
+
+    const message = await Message.findById(messageId);
+    
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (type === 'for_me') {
+      // Add user to deletedBy array if not already there
+      if (!message.deletedBy.includes(req.user._id)) {
+        message.deletedBy.push(req.user._id);
+        await message.save();
+      }
+      return res.json({ success: true, message: "Deleted for you" });
+    } else if (type === 'for_everyone') {
+      // Check if user is the sender
+      if (message.sender.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "You can only delete your own messages for everyone" });
+      }
+      
+      // Physically delete the document
+      await Message.findByIdAndDelete(messageId);
+      
+      // Optionally update Chat latestMessage if this was the latest message
+      const chat = await Chat.findById(message.chat);
+      if (chat && chat.latestMessage && chat.latestMessage.toString() === messageId.toString()) {
+        // Find previous latest message
+        const prevMessage = await Message.findOne({ chat: chat._id }).sort({ createdAt: -1 });
+        chat.latestMessage = prevMessage ? prevMessage._id : null;
+        await chat.save();
+      }
+      
+      return res.json({ success: true, message: "Deleted for everyone" });
+    } else {
+      return res.status(400).json({ message: "Invalid delete type" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+module.exports = { allMessages, sendMessage, deleteMessage };

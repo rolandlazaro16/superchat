@@ -238,6 +238,33 @@ export default function ChatPage() {
     }
   };
 
+  const [messageToDelete, setMessageToDelete] = useState<any | null>(null);
+  const [isDeleteMessageModalOpen, setIsDeleteMessageModalOpen] = useState(false);
+
+  const handleDeleteMessage = async (type: 'for_me' | 'for_everyone') => {
+    if (!messageToDelete) return;
+    
+    try {
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      await axios.delete(`${ENDPOINT}/api/message/${messageToDelete._id}`, {
+        data: { type },
+        ...config
+      });
+
+      // Optimistic UI update
+      setMessages((prev: any) => prev.filter((m: any) => m._id !== messageToDelete._id));
+
+      if (type === 'for_everyone' && socket) {
+        socket.emit("message deleted", messageToDelete);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeleteMessageModalOpen(false);
+      setMessageToDelete(null);
+    }
+  };
+
   const handleBlockUser = async (userId: string) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token}` } };
@@ -732,6 +759,10 @@ export default function ChatPage() {
         setIncomingCallData(null);
         setCallUserObj(null);
       });
+
+      socket.on("message deleted", (deletedMessage: any) => {
+        setMessages((prevMessages) => prevMessages.filter((m: any) => m._id !== deletedMessage._id));
+      });
     }
 
     return () => {
@@ -741,6 +772,7 @@ export default function ChatPage() {
         socket.off("call accepted");
         socket.off("ice-candidate");
         socket.off("call ended");
+        socket.off("message deleted");
       }
     };
   }, [socketConnected, selectedChat, messages]);
@@ -1455,6 +1487,10 @@ export default function ChatPage() {
                 messages.map((m: any, i: number) => (
                   <div
                     key={m._id || i}
+                    onClick={() => {
+                      setMessageToDelete(m);
+                      setIsDeleteMessageModalOpen(true);
+                    }}
                     style={{
                       alignSelf: m.sender._id === user?._id ? "flex-end" : "flex-start",
                       background: (m.content && m.content.startsWith("data:audio/")) ? "transparent" : (m.sender._id === user?._id ? "var(--primary-color)" : "rgba(30, 41, 59, 0.7)"),
@@ -1462,7 +1498,8 @@ export default function ChatPage() {
                       padding: (m.content && m.content.startsWith("data:audio/")) ? "0" : "8px 15px",
                       borderRadius: "15px",
                       maxWidth: "70%",
-                      wordBreak: "break-word"
+                      wordBreak: "break-word",
+                      cursor: "pointer"
                     }}
                   >
                     {m.content && m.content.startsWith("data:audio/") ? (
@@ -1660,6 +1697,43 @@ export default function ChatPage() {
                 Unblock
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Message Modal */}
+      {isDeleteMessageModalOpen && messageToDelete && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "350px", padding: "1.5rem", borderRadius: "16px", background: "rgba(15, 23, 42, 0.95)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "white", marginBottom: "10px", textAlign: "center" }}>Delete message?</h3>
+            
+            <button 
+              onClick={() => handleDeleteMessage('for_me')}
+              style={{ padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "none", color: "white", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", transition: "background 0.2s" }}
+              className="hover:bg-slate-700/50"
+            >
+              <Trash2 size={18} color="var(--text-muted)" /> Delete for me
+            </button>
+            
+            {messageToDelete.sender._id === user?._id && (
+              <button 
+                onClick={() => handleDeleteMessage('for_everyone')}
+                style={{ padding: "12px", borderRadius: "10px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", color: "#ef4444", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", transition: "background 0.2s" }}
+                className="hover:bg-red-500/20"
+              >
+                <Trash2 size={18} color="#ef4444" /> Delete for everyone
+              </button>
+            )}
+            
+            <button 
+              onClick={() => {
+                setIsDeleteMessageModalOpen(false);
+                setMessageToDelete(null);
+              }}
+              style={{ padding: "12px", borderRadius: "10px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-muted)", cursor: "pointer", fontSize: "1rem", marginTop: "5px", transition: "background 0.2s" }}
+              className="hover:bg-slate-800"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
