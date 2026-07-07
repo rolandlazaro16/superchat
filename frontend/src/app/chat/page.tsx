@@ -517,16 +517,32 @@ export default function ChatPage() {
 
   const setupMediaStream = async (type: "video" | "audio") => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: type === "video", audio: true });
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Kivinjari chako hakikubali matumizi ya kamera/maiki (Inahitaji HTTPS).");
+      }
+
+      const constraints = {
+        video: type === "video" ? { facingMode: "user" } : false,
+        audio: true
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.play().catch(e => console.error("Local play error:", e));
       }
       return stream;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error accessing media devices.", err);
-      alert("Could not access camera/microphone.");
+      // Toa ujumbe unaoeleweka zaidi kulingana na kosa
+      let errorMsg = "Kamera/Maiki haikupatikana au inatumika na programu nyingine.";
+      if (err.name === "NotAllowedError") {
+        errorMsg = "Tafadhali ruhusu matumizi ya Kamera na Maiki kwenye mipangilio ya kivinjari chako (Site Settings).";
+      } else if (err.name === "NotFoundError") {
+        errorMsg = "Kamera au Maiki haijapatikana kwenye simu/kifaa chako.";
+      }
+      alert(`Imeshindwa kufikia kamera/maiki: ${errorMsg} (${err.name || err.message})`);
       return null;
     }
   };
@@ -759,6 +775,9 @@ export default function ChatPage() {
           } catch (e) {
             console.error("Error adding ice candidate", e);
           }
+        } else {
+          // Queue candidates received before peer connection is created (e.g., while ringing)
+          iceCandidateQueue.current.push(candidate);
         }
       });
 
