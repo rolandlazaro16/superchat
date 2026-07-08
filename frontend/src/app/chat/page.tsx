@@ -552,7 +552,22 @@ export default function ChatPage() {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:global.stun.twilio.com:3478" },
-        { urls: "stun:stun.cloudflare.com:3478" }
+        { urls: "stun:stun.cloudflare.com:3478" },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
       ]
     });
 
@@ -570,7 +585,12 @@ export default function ChatPage() {
         if (event.streams && event.streams[0]) {
           remoteVideoRef.current.srcObject = event.streams[0];
         } else {
-          remoteVideoRef.current.srcObject = new MediaStream([event.track]);
+          let currentStream = remoteVideoRef.current.srcObject as MediaStream;
+          if (!currentStream) {
+            currentStream = new MediaStream();
+            remoteVideoRef.current.srcObject = currentStream;
+          }
+          currentStream.addTrack(event.track);
         }
         remoteVideoRef.current.play().catch(e => console.error("Error playing remote video:", e));
       }
