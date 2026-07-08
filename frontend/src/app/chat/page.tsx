@@ -6,6 +6,7 @@ import axios from "axios";
 import io, { Socket } from "socket.io-client";
 import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall } from "lucide-react";
 import { useRouter } from "next/navigation";
+import EmojiPicker from "emoji-picker-react";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
@@ -117,6 +118,7 @@ export default function ChatPage() {
   const [callType, setCallType] = useState<"video" | "audio" | null>(null);
   const [incomingCallData, setIncomingCallData] = useState<any>(null);
   const [callUserObj, setCallUserObj] = useState<any>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Voice Recording States
   const [isRecording, setIsRecording] = useState(false);
@@ -133,6 +135,9 @@ export default function ChatPage() {
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
     setUser(null);
+    setSelectedChat(null);
+    setChats([]);
+    setMessages([]);
     router.push("/");
   };
 
@@ -665,7 +670,6 @@ export default function ChatPage() {
     if (!incomingCallData) return;
     setCallStatus("active");
     setCallUserObj({ _id: incomingCallData.from, name: incomingCallData.callerInfo.name });
-    iceCandidateQueue.current = [];
     
     const stream = await setupMediaStream(callType || "video");
     if (!stream) {
@@ -1627,9 +1631,24 @@ export default function ChatPage() {
               }
 
               return (
-                <div className="glass-panel" style={{ padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
+                <div className="glass-panel" style={{ position: "relative", padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
+                  {showEmojiPicker && (
+                    <div style={{ position: "absolute", bottom: "80px", left: "20px", zIndex: 100 }}>
+                      <EmojiPicker 
+                        onEmojiClick={(emojiObject) => {
+                          setNewMessage((prevMsg) => prevMsg + emojiObject.emoji);
+                        }} 
+                        theme="dark"
+                      />
+                    </div>
+                  )}
                   <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
-                    <Smile size={24} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                    <Smile 
+                      size={24} 
+                      style={{ cursor: "pointer", transition: "color 0.2s", color: showEmojiPicker ? "var(--primary-color)" : "inherit" }} 
+                      className="hover:text-white" 
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
+                    />
                     <Plus size={26} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
                   </div>
                   {isRecording ? (

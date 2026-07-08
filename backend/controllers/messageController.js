@@ -9,6 +9,15 @@ const allMessages = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     const chatId = req.params.chatId;
+
+    // Check if chat exists and user is a member
+    const chatExists = await Chat.findById(chatId);
+    if (!chatExists) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+    if (!chatExists.users.some(u => u.toString() === req.user._id.toString())) {
+      return res.status(403).json({ message: "Not authorized to access this chat" });
+    }
     
     // Check if the chat was cleared by this user
     const clearedChat = user.clearedChats?.find(c => c.chatId.toString() === chatId);
@@ -38,13 +47,21 @@ const sendMessage = async (req, res) => {
     return res.sendStatus(400);
   }
 
-  var newMessage = {
-    sender: req.user._id,
-    content: content,
-    chat: chatId,
-  };
-
   try {
+    const chatExists = await Chat.findById(chatId);
+    if (!chatExists) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+    if (!chatExists.users.some(u => u.toString() === req.user._id.toString())) {
+      return res.status(403).json({ message: "Not authorized to send messages to this chat" });
+    }
+
+    var newMessage = {
+      sender: req.user._id,
+      content: content,
+      chat: chatId,
+    };
+
     var message = await Message.create(newMessage);
 
     message = await message.populate("sender", "name profilePic");
