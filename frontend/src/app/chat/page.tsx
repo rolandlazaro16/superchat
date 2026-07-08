@@ -6,8 +6,7 @@ import axios from "axios";
 import io, { Socket } from "socket.io-client";
 import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall } from "lucide-react";
 import { useRouter } from "next/navigation";
-import EmojiPicker from "emoji-picker-react";
-
+import EmojiPicker, { Theme } from "emoji-picker-react";
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 let socket: Socket;
 
@@ -1638,7 +1637,7 @@ export default function ChatPage() {
                         onEmojiClick={(emojiObject) => {
                           setNewMessage((prevMsg) => prevMsg + emojiObject.emoji);
                         }} 
-                        theme="dark"
+                        theme={Theme.DARK}
                       />
                     </div>
                   )}
