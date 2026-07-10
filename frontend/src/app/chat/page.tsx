@@ -110,7 +110,30 @@ export default function ChatPage() {
   const [activeTab, setActiveTab] = useState<string>("chats");
   const [callSearch, setCallSearch] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [readChatIds, setReadChatIds] = useState<string[]>([]);
+  const [readChatStatus, setReadChatStatus] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("readChatStatus");
+      if (saved) setReadChatStatus(JSON.parse(saved));
+    } catch(e) {}
+  }, []);
+
+  useEffect(() => {
+    if (selectedChat) {
+      const currentChat = chats.find(c => c._id === selectedChat._id) || selectedChat;
+      if (currentChat?.latestMessage) {
+        setReadChatStatus(prev => {
+          if (prev[currentChat._id] !== currentChat.latestMessage._id) {
+            const newStatus = { ...prev, [currentChat._id]: currentChat.latestMessage._id };
+            localStorage.setItem("readChatStatus", JSON.stringify(newStatus));
+            return newStatus;
+          }
+          return prev;
+        });
+      }
+    }
+  }, [selectedChat, chats]);
 
   // WebRTC Video Call States
   const [callStatus, setCallStatus] = useState<"idle" | "ringing" | "calling" | "active">("idle");
@@ -952,8 +975,10 @@ export default function ChatPage() {
       {/* Calculate unread chats */}
       {(() => {
         const unreadChatsCount = chats.filter(chat => {
-          if (readChatIds.includes(chat._id) || selectedChat?._id === chat._id) return false;
-          return chat.unreadCount > 0 || (chat.latestMessage && chat.latestMessage.sender._id !== user?._id);
+          if (selectedChat?._id === chat._id) return false;
+          if (!chat.latestMessage) return false;
+          if (chat.latestMessage.sender._id === user?._id) return false;
+          return readChatStatus[chat._id] !== chat.latestMessage._id;
         }).length;
         
         return (
@@ -1194,8 +1219,10 @@ export default function ChatPage() {
               {chats && chats.length > 0 && chats
                 .filter((chat) => {
                   if (showUnreadOnly) {
-                    if (readChatIds.includes(chat._id) || selectedChat?._id === chat._id) return false;
-                    return chat.unreadCount > 0 || (chat.latestMessage && chat.latestMessage.sender._id !== user?._id);
+                    if (selectedChat?._id === chat._id) return false;
+                    if (!chat.latestMessage) return false;
+                    if (chat.latestMessage.sender._id === user?._id) return false;
+                    return readChatStatus[chat._id] !== chat.latestMessage._id;
                   }
                   return true;
                 })
@@ -1213,9 +1240,6 @@ export default function ChatPage() {
                 onMouseLeave={() => setHoveredItemId(null)}
                 onClick={() => {
                   setSelectedChat(chat);
-                  if (!readChatIds.includes(chat._id)) {
-                    setReadChatIds([...readChatIds, chat._id]);
-                  }
                 }}
                 key={chat._id}
                 style={{
