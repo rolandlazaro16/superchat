@@ -1556,7 +1556,6 @@ export default function ChatPage() {
                   }} 
                 />
                 <div style={{ width: "1px", height: "20px", background: "var(--border-color)", margin: "0 5px" }}></div>
-                <Search size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
                 <div style={{ position: "relative" }}>
                   <MoreVertical 
                     size={20} 
