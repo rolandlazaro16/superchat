@@ -1030,9 +1030,6 @@ export default function ChatPage() {
           
           {/* Bottom Icons (Settings & Profile) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "20px", alignItems: "center" }}>
-            <div style={{ padding: "8px", borderRadius: "50%", cursor: "pointer" }} className="hover:bg-white/5 transition-colors">
-              <Settings size={22} color="var(--text-muted)" />
-            </div>
             {/* Profile Icon */}
             <div style={{ position: "relative" }}>
               {user?.profilePic ? (
