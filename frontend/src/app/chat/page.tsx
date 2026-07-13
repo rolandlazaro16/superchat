@@ -1237,7 +1237,7 @@ export default function ChatPage() {
                   </div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white', marginBottom: '10px' }}>Add to Favorites</h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', maxWidth: '280px', lineHeight: '1.5' }}>
-                    Make it easy to find the people and groups that matter most across WhatsApp.
+                    Make it easy to find the people and groups that matter most across SuperChat.
                   </p>
                   <span 
                     onClick={() => setIsFavoritesModalOpen(true)}
