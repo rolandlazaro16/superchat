@@ -29,6 +29,7 @@ const registerUser = async (req, res) => {
         isAdmin: user.isAdmin,
         profilePic: user.profilePic,
         token: generateToken(user._id),
+        pinnedChats: user.pinnedChats,
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -55,6 +56,7 @@ const loginUser = async (req, res) => {
         isAdmin: user.isAdmin,
         profilePic: user.profilePic,
         token: generateToken(user._id),
+        pinnedChats: user.pinnedChats,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });

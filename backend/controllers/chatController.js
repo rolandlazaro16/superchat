@@ -131,6 +131,7 @@ const togglePinChat = async (req, res) => {
     } else {
       user.pinnedChats.push(chatId);
     }
+    user.markModified('pinnedChats');
     await user.save();
     res.status(200).json(user.pinnedChats);
   } catch (error) {
