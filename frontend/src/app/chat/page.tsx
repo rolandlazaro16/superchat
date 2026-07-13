@@ -118,6 +118,13 @@ export default function ChatPage() {
   const [readChatStatus, setReadChatStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem("readChatStatus");
       if (saved) setReadChatStatus(JSON.parse(saved));
