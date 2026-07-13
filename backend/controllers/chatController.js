@@ -126,7 +126,7 @@ const togglePinChat = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     const chatId = req.params.id;
-    if (user.pinnedChats.includes(chatId)) {
+    if (user.pinnedChats.some(id => id.toString() === chatId)) {
       user.pinnedChats = user.pinnedChats.filter(id => id.toString() !== chatId);
     } else {
       user.pinnedChats.push(chatId);
