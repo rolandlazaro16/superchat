@@ -1232,29 +1232,43 @@ export default function ChatPage() {
               {/* Existing Chats */}
               {activeFilter === 'favorites' && (!chats || chats.filter(chat => user?.pinnedChats?.includes(chat._id)).length === 0) ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
-                  <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-                    <div style={{ width: '100px', height: '120px', background: '#99f6e4', borderRadius: '12px', border: '3px solid #064e3b', position: 'relative' }}>
-                       <div style={{ position: 'absolute', top: '15px', left: '25px', width: '40px', height: '40px', borderRadius: '50%', border: '3px solid #064e3b', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                         <div style={{ width: '15px', height: '15px', borderRadius: '50%', border: '3px solid #064e3b' }}></div>
-                       </div>
-                       <div style={{ position: 'absolute', top: '65px', left: '15px', width: '60px', height: '4px', background: '#064e3b', borderRadius: '2px' }}></div>
-                       <div style={{ position: 'absolute', top: '80px', left: '15px', width: '40px', height: '4px', background: '#064e3b', borderRadius: '2px' }}></div>
+
+                  <div 
+                    onClick={() => { setSelectedFavorites(user?.pinnedChats || []); setIsFavoritesModalOpen(true); }}
+                    style={{ width: '120px', height: '120px', background: 'rgba(30, 41, 59, 0.4)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', position: 'relative', cursor: 'pointer' }}
+                    className="hover:scale-105 transition-transform"
+                  >
+                    <div style={{ width: '60px', height: '60px', background: '#34d399', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Plus size={30} color="white" strokeWidth={3} />
                     </div>
                     <div style={{ position: 'absolute', right: '-10px', bottom: '10px', width: '40px', height: '40px', background: '#34d399', borderRadius: '50% 50% 50% 10%', transform: 'rotate(45deg)', border: '3px solid #064e3b', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <Heart size={20} color="#064e3b" fill="#064e3b" style={{ transform: 'rotate(-45deg)' }} />
                     </div>
                   </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white', marginBottom: '10px' }}>Add to Favorites</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', maxWidth: '280px', lineHeight: '1.5' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white', marginBottom: '10px' }}>No favorites yet</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '20px', maxWidth: '280px', lineHeight: 1.5 }}>
                     Make it easy to find the people and groups that matter most across SuperChat.
                   </p>
-                  <span 
+                  <button 
                     onClick={() => { setSelectedFavorites(user?.pinnedChats || []); setIsFavoritesModalOpen(true); }}
-                    style={{ color: '#10b981', fontWeight: 600, cursor: 'pointer', padding: '10px 20px' }}
-                    className="hover:text-emerald-400"
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      fontWeight: 600, 
+                      cursor: 'pointer', 
+                      padding: '12px 24px', 
+                      borderRadius: '24px',
+                      border: 'none',
+                      fontSize: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                    }}
+                    className="hover:bg-emerald-400 hover:scale-105 transition-all"
                   >
                     Add to Favorites
-                  </span>
+                  </button>
                 </div>
               ) : (
                 <>
