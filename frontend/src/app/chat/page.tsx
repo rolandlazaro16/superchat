@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Check, X, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -113,6 +113,8 @@ export default function ChatPage() {
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [favoriteSearch, setFavoriteSearch] = useState("");
   const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isSavingFavorites, setIsSavingFavorites] = useState(false);
   const [readChatStatus, setReadChatStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -1782,6 +1784,26 @@ export default function ChatPage() {
                 />
               </div>
 
+              {/* Selected Favorites Pills */}
+              {selectedFavorites.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
+                  {selectedFavorites.map(id => {
+                    const chat = chats.find(c => c._id === id);
+                    if (!chat) return null;
+                    const name = !chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName;
+                    return (
+                      <div key={id} style={{ display: 'flex', alignItems: 'center', background: '#fef3c7', color: '#b45309', borderRadius: '16px', padding: '4px 8px 4px 4px', fontSize: '0.85rem' }}>
+                        <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "0.7rem", flexShrink: 0, marginRight: '6px' }}>
+                          <Users size={12} />
+                        </div>
+                        <span style={{ marginRight: '6px', fontWeight: 500 }}>{name}</span>
+                        <X size={14} color="#b45309" style={{ cursor: 'pointer' }} onClick={() => setSelectedFavorites(selectedFavorites.filter(fid => fid !== id))} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div style={{ background: '#dcfce7', borderRadius: '12px', padding: '12px 15px', fontSize: '0.85rem', color: '#064e3b', marginBottom: '20px' }}>
                 Add as many people or groups as you want. Only you can see who's included on your lists.
               </div>
@@ -1798,7 +1820,9 @@ export default function ChatPage() {
                     setSelectedFavorites([...selectedFavorites, chat._id]);
                   }
                 }}>
-                  <input type="checkbox" checked={selectedFavorites.includes(chat._id)} readOnly style={{ width: '18px', height: '18px', accentColor: '#22c55e', cursor: 'pointer' }} />
+                  <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: selectedFavorites.includes(chat._id) ? 'none' : '2px solid #d1d5db', background: selectedFavorites.includes(chat._id) ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {selectedFavorites.includes(chat._id) && <Check size={14} color="white" strokeWidth={3} />}
+                  </div>
                   <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1rem", flexShrink: 0 }}>
                     {(!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName).charAt(0).toUpperCase()}
                   </div>
@@ -1814,15 +1838,29 @@ export default function ChatPage() {
               ))}
             </div>
             
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}>
-              <button 
-                 onClick={() => {
-                   setIsFavoritesModalOpen(false);
-                 }}
-                 style={{ background: '#22c55e', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Save Favorites
-              </button>
+            <div 
+              onClick={async () => {
+                if (isSavingFavorites) return;
+                setIsSavingFavorites(true);
+                const toToggle = [];
+                for (const chat of chats) {
+                  const currentlyPinned = user?.pinnedChats?.includes(chat._id);
+                  const shouldBePinned = selectedFavorites.includes(chat._id);
+                  if (currentlyPinned !== shouldBePinned) {
+                    toToggle.push(chat._id);
+                  }
+                }
+                for (const id of toToggle) {
+                  await handlePinChat(id);
+                }
+                setIsSavingFavorites(false);
+                setIsFavoritesModalOpen(false);
+                setToastMessage("successfully added to favourite");
+              }}
+              style={{ position: 'absolute', bottom: '20px', right: '20px', width: '56px', height: '56px', borderRadius: '50%', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSavingFavorites ? 'not-allowed' : 'pointer', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', opacity: isSavingFavorites ? 0.7 : 1 }}
+              className="hover:bg-emerald-600 transition-colors"
+            >
+              {isSavingFavorites ? <div style={{ width: "20px", height: "20px", border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%" }} className="animate-spin" /> : <Check size={28} />}
             </div>
           </div>
         </div>
@@ -2043,6 +2081,11 @@ export default function ChatPage() {
     </div>
       );
     })()}
+      {toastMessage && (
+        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', background: '#064e3b', color: '#34d399', padding: '12px 24px', borderRadius: '30px', zIndex: 9999, fontSize: '0.95rem', fontWeight: 500, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Check size={18} /> {toastMessage}
+        </div>
+      )}
     </>
   );
 }
