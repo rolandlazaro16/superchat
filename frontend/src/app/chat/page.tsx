@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChatState } from "@/context/ChatProvider";
 import axios from "axios";
 import io, { Socket } from "socket.io-client";
-import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Check, X, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall } from "lucide-react";
+import { Video, Phone, Search, MoreVertical, Plus, Smile, Mic, Send, MessageSquarePlus, CheckCheck, Check, X, Users, UserX, MessageCircle, UserPlus, ChevronDown, Archive, BellOff, Pin, Heart, List, Ban, MinusCircle, Trash2, Mail, LogOut, ArrowLeft, MessageSquare, Settings, Lock, PhoneIncoming, PhoneCall, FileText, Image, Camera, Headphones } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 const ENDPOINT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -155,6 +155,7 @@ export default function ChatPage() {
   const [incomingCallData, setIncomingCallData] = useState<any>(null);
   const [callUserObj, setCallUserObj] = useState<any>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
 
   // Voice Recording States
   const [isRecording, setIsRecording] = useState(false);
@@ -1774,14 +1775,40 @@ export default function ChatPage() {
                       />
                     </div>
                   )}
+                  {showAttachmentMenu && (
+                    <div style={{ position: "absolute", bottom: "80px", left: "60px", zIndex: 100, background: "white", borderRadius: "16px", padding: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", gap: "5px", width: "200px" }}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                        <FileText size={20} color="#8b5cf6" />
+                        <span style={{ color: "#333", fontWeight: 500 }}>Document</span>
+                      </div>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                        <Image size={20} color="#3b82f6" />
+                        <span style={{ color: "#333", fontWeight: 500 }}>Photos & videos</span>
+                      </div>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                        <Camera size={20} color="#ec4899" />
+                        <span style={{ color: "#333", fontWeight: 500 }}>Camera</span>
+                      </div>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                        <Headphones size={20} color="#f97316" />
+                        <span style={{ color: "#333", fontWeight: 500 }}>Audio</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
                     <Smile 
                       size={24} 
                       style={{ cursor: "pointer", transition: "color 0.2s", color: showEmojiPicker ? "var(--primary-color)" : "inherit" }} 
                       className="hover:text-white" 
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
+                      onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowAttachmentMenu(false); }} 
                     />
-                    <Plus size={26} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" />
+                    <Plus 
+                      size={26} 
+                      style={{ cursor: "pointer", transition: "color 0.2s", color: showAttachmentMenu ? "var(--primary-color)" : "inherit" }} 
+                      className="hover:text-white" 
+                      onClick={() => { setShowAttachmentMenu(!showAttachmentMenu); setShowEmojiPicker(false); }} 
+                    />
                   </div>
                   {isRecording ? (
                     <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(30, 41, 59, 0.7)", borderRadius: "20px", padding: "8px 20px" }}>
