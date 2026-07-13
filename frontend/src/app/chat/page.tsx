@@ -109,7 +109,10 @@ export default function ChatPage() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<string>("chats");
   const [callSearch, setCallSearch] = useState("");
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "favorites">("all");
+  const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
+  const [favoriteSearch, setFavoriteSearch] = useState("");
+  const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
   const [readChatStatus, setReadChatStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -1151,18 +1154,23 @@ export default function ChatPage() {
         {/* Filters */}
         <div style={{ padding: "0 15px 10px 15px", display: "flex", gap: "10px", borderBottom: "1px solid var(--border-color)" }}>
           <span 
-            onClick={() => setShowUnreadOnly(false)}
-            style={{ padding: "6px 16px", borderRadius: "15px", background: !showUnreadOnly ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: !showUnreadOnly ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+            onClick={() => setActiveFilter('all')}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'all' ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: activeFilter === 'all' ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
           >
             All
           </span>
           <span 
-            onClick={() => setShowUnreadOnly(true)}
-            style={{ padding: "6px 16px", borderRadius: "15px", background: showUnreadOnly ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: showUnreadOnly ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+            onClick={() => setActiveFilter('unread')}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'unread' ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: activeFilter === 'unread' ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
           >
             Unread
           </span>
-          <span style={{ padding: "6px 16px", borderRadius: "15px", background: "rgba(30, 41, 59, 0.4)", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer" }}>Favorites</span>
+          <span 
+            onClick={() => setActiveFilter('favorites')}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'favorites' ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: activeFilter === 'favorites' ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+          >
+            Favorites
+          </span>
         </div>
         
         {/* Chats List or Search Results */}
@@ -1213,16 +1221,47 @@ export default function ChatPage() {
           ) : (
             <>
               {/* Existing Chats */}
-              {chats && chats.length > 0 && chats
-                .filter((chat) => {
-                  if (showUnreadOnly) {
-                    if (selectedChat?._id === chat._id) return false;
-                    if (!chat.latestMessage) return false;
-                    if (chat.latestMessage.sender._id === user?._id) return false;
-                    return readChatStatus[chat._id] !== chat.latestMessage._id;
-                  }
-                  return true;
-                })
+              {activeFilter === 'favorites' && (!chats || chats.filter(chat => user?.pinnedChats?.includes(chat._id)).length === 0) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
+                  <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                    <div style={{ width: '100px', height: '120px', background: '#99f6e4', borderRadius: '12px', border: '3px solid #064e3b', position: 'relative' }}>
+                       <div style={{ position: 'absolute', top: '15px', left: '25px', width: '40px', height: '40px', borderRadius: '50%', border: '3px solid #064e3b', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                         <div style={{ width: '15px', height: '15px', borderRadius: '50%', border: '3px solid #064e3b' }}></div>
+                       </div>
+                       <div style={{ position: 'absolute', top: '65px', left: '15px', width: '60px', height: '4px', background: '#064e3b', borderRadius: '2px' }}></div>
+                       <div style={{ position: 'absolute', top: '80px', left: '15px', width: '40px', height: '4px', background: '#064e3b', borderRadius: '2px' }}></div>
+                    </div>
+                    <div style={{ position: 'absolute', right: '-10px', bottom: '10px', width: '40px', height: '40px', background: '#34d399', borderRadius: '50% 50% 50% 10%', transform: 'rotate(45deg)', border: '3px solid #064e3b', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Heart size={20} color="#064e3b" fill="#064e3b" style={{ transform: 'rotate(-45deg)' }} />
+                    </div>
+                  </div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white', marginBottom: '10px' }}>Add to Favorites</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', maxWidth: '280px', lineHeight: '1.5' }}>
+                    Make it easy to find the people and groups that matter most across WhatsApp.
+                  </p>
+                  <span 
+                    onClick={() => setIsFavoritesModalOpen(true)}
+                    style={{ color: '#10b981', fontWeight: 600, cursor: 'pointer', padding: '10px 20px' }}
+                    className="hover:text-emerald-400"
+                  >
+                    Add to Favorites
+                  </span>
+                </div>
+              ) : (
+                <>
+                  {chats && chats.length > 0 && chats
+                    .filter((chat) => {
+                      if (activeFilter === 'unread') {
+                        if (selectedChat?._id === chat._id) return false;
+                        if (!chat.latestMessage) return false;
+                        if (chat.latestMessage.sender._id === user?._id) return false;
+                        return readChatStatus[chat._id] !== chat.latestMessage._id;
+                      }
+                      if (activeFilter === 'favorites') {
+                        return user?.pinnedChats?.includes(chat._id);
+                      }
+                      return true;
+                    })
                 .slice()
                 .sort((a, b) => {
                   const isAPinned = user?.pinnedChats?.includes(a._id);
@@ -1381,6 +1420,7 @@ export default function ChatPage() {
                 </div>
               )}
             </>
+          )}
           )}
           </div>
         </div>
@@ -1720,6 +1760,73 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+      {/* Favorites Modal */}
+      {isFavoritesModalOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "16px", position: "relative", background: "white", color: "black", display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '10px' }}>
+               <button onClick={() => setIsFavoritesModalOpen(false)} style={{ background: "none", border: "none", color: "black", fontSize: "1.2rem", cursor: "pointer", display: 'flex' }}>✕</button>
+               <h2 style={{ fontSize: "1.2rem", fontWeight: 600 }}>Add to Favorites</h2>
+            </div>
+            
+            <div style={{ padding: '0 5px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #22c55e', borderRadius: '20px', padding: '8px 15px', marginBottom: '15px' }}>
+                <Search size={18} color="#6b7280" />
+                <input 
+                  type="text" 
+                  placeholder="Search name or number" 
+                  value={favoriteSearch}
+                  onChange={(e) => setFavoriteSearch(e.target.value)}
+                  style={{ border: 'none', outline: 'none', width: '100%', marginLeft: '10px', fontSize: '0.9rem', color: 'black', background: 'transparent' }}
+                />
+              </div>
+
+              <div style={{ background: '#dcfce7', borderRadius: '12px', padding: '12px 15px', fontSize: '0.85rem', color: '#064e3b', marginBottom: '20px' }}>
+                Add as many people or groups as you want. Only you can see who's included on your lists.
+              </div>
+
+              <h4 style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '10px', fontWeight: 500 }}>Recent chats</h4>
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1, padding: '0 5px', color: 'black' }} className="custom-scrollbar">
+              {chats && chats.length > 0 && chats.filter(c => !favoriteSearch || (c.isGroupChat ? c.chatName : c.users.find((u: any) => u._id !== user?._id)?.name)?.toLowerCase().includes(favoriteSearch.toLowerCase())).map(chat => (
+                <div key={chat._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
+                  if (selectedFavorites.includes(chat._id)) {
+                    setSelectedFavorites(selectedFavorites.filter(id => id !== chat._id));
+                  } else {
+                    setSelectedFavorites([...selectedFavorites, chat._id]);
+                  }
+                }}>
+                  <input type="checkbox" checked={selectedFavorites.includes(chat._id)} readOnly style={{ width: '18px', height: '18px', accentColor: '#22c55e', cursor: 'pointer' }} />
+                  <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1rem", flexShrink: 0 }}>
+                    {(!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName).charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName} {(!chat.isGroupChat && chat.users.find((u: any) => u._id !== user?._id)?._id === user?._id) && "(You)"}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.email : "Group Chat"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}>
+              <button 
+                 onClick={() => {
+                   setIsFavoritesModalOpen(false);
+                 }}
+                 style={{ background: '#22c55e', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Save Favorites
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Registration Modal */}
       {isRegisterModalOpen && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
