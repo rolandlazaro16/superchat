@@ -1689,9 +1689,9 @@ export default function ChatPage() {
                         Contact info
                       </div>
                       <div 
-                        style={{ padding: "10px 20px", cursor: "pointer", color: "white", fontSize: "0.95rem", transition: "background 0.2s" }} 
+                        style={{ padding: "12px 20px", cursor: "pointer", fontSize: "15px", color: "white", transition: "background 0.2s" }}
                         className="hover:bg-slate-700/50"
-                        onClick={() => setIsChatMenuOpen(false)}
+                        onClick={() => { setIsChatMenuOpen(false); setSelectedChat(null); }}
                       >
                         Close chat
                       </div>
