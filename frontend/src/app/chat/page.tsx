@@ -161,9 +161,16 @@ export default function ChatPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
+  const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  
+
+  // Attachment Refs
+  const documentRef = useRef<HTMLInputElement>(null);
+  const mediaRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLInputElement>(null);
+
+  // WebRTC States
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
@@ -571,6 +578,46 @@ export default function ChatPage() {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleAttachmentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Optional: add a generic loading state here if needed
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+      const base64File = reader.result as string;
+      try {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${user?.token}`,
+          },
+        };
+        const { data } = await axios.post(
+          `${ENDPOINT}/api/message`,
+          {
+            content: base64File,
+            chatId: selectedChat._id,
+          },
+          config
+        );
+        if (socket) {
+          socket.emit("new message", data);
+        }
+        setMessages((prev: any) => [...prev, data]);
+        setFetchAgain(!fetchAgain);
+      } catch (error) {
+        console.error("Error sending attachment:", error);
+        alert("Failed to send attachment.");
+      }
+    };
+    
+    // Reset the input so the same file can be selected again
+    e.target.value = '';
+    setShowAttachmentMenu(false);
   };
 
   const iceCandidateQueue = useRef<any[]>([]);
@@ -1724,6 +1771,15 @@ export default function ChatPage() {
                   >
                     {m.content && m.content.startsWith("data:audio/") ? (
                       <audio controls src={m.content} style={{ height: "45px", maxWidth: "250px", outline: "none" }} />
+                    ) : m.content && m.content.startsWith("data:image/") ? (
+                      <img src={m.content} alt="image attachment" style={{ maxWidth: "250px", maxHeight: "250px", borderRadius: "10px", objectFit: "contain" }} />
+                    ) : m.content && m.content.startsWith("data:video/") ? (
+                      <video controls src={m.content} style={{ maxWidth: "250px", maxHeight: "250px", borderRadius: "10px", outline: "none" }} />
+                    ) : m.content && m.content.startsWith("data:") ? (
+                      <a href={m.content} download="Attachment" style={{ display: "flex", alignItems: "center", gap: "10px", color: m.sender._id === user?._id ? "white" : "var(--primary-color)", textDecoration: "none" }}>
+                        <FileText size={24} />
+                        <span style={{ fontWeight: 500, textDecoration: "underline" }}>Download Document</span>
+                      </a>
                     ) : (
                       m.content
                     )}
@@ -1777,24 +1833,30 @@ export default function ChatPage() {
                   )}
                   {showAttachmentMenu && (
                     <div style={{ position: "absolute", bottom: "80px", left: "60px", zIndex: 100, background: "white", borderRadius: "16px", padding: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", gap: "5px", width: "200px" }}>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => documentRef.current?.click()}>
                         <FileText size={20} color="#8b5cf6" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Document</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => mediaRef.current?.click()}>
                         <Image size={20} color="#3b82f6" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Photos & videos</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => cameraRef.current?.click()}>
                         <Camera size={20} color="#ec4899" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Camera</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => setShowAttachmentMenu(false)}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => audioRef.current?.click()}>
                         <Headphones size={20} color="#f97316" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Audio</span>
                       </div>
                     </div>
                   )}
+
+                  {/* Hidden File Inputs for Attachments */}
+                  <input type="file" ref={documentRef} accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.csv" style={{ display: "none" }} onChange={handleAttachmentSelect} />
+                  <input type="file" ref={mediaRef} accept="image/*,video/*" style={{ display: "none" }} onChange={handleAttachmentSelect} />
+                  <input type="file" ref={cameraRef} accept="image/*,video/*" capture="environment" style={{ display: "none" }} onChange={handleAttachmentSelect} />
+                  <input type="file" ref={audioRef} accept="audio/*" style={{ display: "none" }} onChange={handleAttachmentSelect} />
 
                   <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
                     <Smile 
