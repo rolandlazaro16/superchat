@@ -112,6 +112,8 @@ export default function ChatPage() {
   const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "favorites">("all");
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [favoriteSearch, setFavoriteSearch] = useState("");
+  const [favoriteSearchResults, setFavoriteSearchResults] = useState<any[]>([]);
+  const [isSearchingFavorites, setIsSearchingFavorites] = useState(false);
   const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState("");
   const [isSavingFavorites, setIsSavingFavorites] = useState(false);
@@ -388,15 +390,28 @@ export default function ChatPage() {
       return;
     }
     try {
-      const config = {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       const { data } = await axios.get(`${ENDPOINT}/api/user?search=${query}`, config);
       setSearchResult(data);
     } catch (error) {
       console.error(error);
     }
   };
+
+  const handleFavoriteSearch = async (query: string) => {
+    setFavoriteSearch(query);
+    try {
+      setIsSearchingFavorites(true);
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+      const { data } = await axios.get(`${ENDPOINT}/api/user?search=${query}`, config);
+      setIsSearchingFavorites(false);
+      setFavoriteSearchResults(data);
+    } catch (error) {
+      console.error(error);
+      setIsSearchingFavorites(false);
+    }
+  };
+
 
   const accessChat = async (userId: string) => {
     try {
@@ -876,6 +891,12 @@ export default function ChatPage() {
       fetchAllUsers();
     }
   }, [user, fetchAgain]);
+
+  useEffect(() => {
+    if (isFavoritesModalOpen) {
+      handleFavoriteSearch("");
+    }
+  }, [isFavoritesModalOpen]);
 
   return (
     <>
@@ -1798,9 +1819,9 @@ export default function ChatPage() {
                 <Search size={18} color="#6b7280" />
                 <input 
                   type="text" 
-                  placeholder="Search name or number" 
+                  placeholder="Search for users to add..." 
                   value={favoriteSearch}
-                  onChange={(e) => setFavoriteSearch(e.target.value)}
+                  onChange={(e) => handleFavoriteSearch(e.target.value)}
                   style={{ border: 'none', outline: 'none', width: '100%', marginLeft: '10px', fontSize: '0.9rem', color: 'black', background: 'transparent' }}
                 />
               </div>
@@ -1809,16 +1830,20 @@ export default function ChatPage() {
               {selectedFavorites.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
                   {selectedFavorites.map(id => {
-                    const chat = chats.find(c => c._id === id);
-                    if (!chat) return null;
-                    const name = !chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName;
+                    // Try to find the user in existing chats first, then in search results
+                    let name = "User";
+                    let chatOrUser = chats.find(c => c._id === id);
+                    if (chatOrUser) {
+                       name = chatOrUser.isGroupChat ? chatOrUser.chatName : chatOrUser.users.find((u: any) => u._id !== user?._id)?.name;
+                    } else {
+                       let u = favoriteSearchResults.find(u => u._id === id);
+                       if (u) name = u.name;
+                    }
+                    
                     return (
-                      <div key={id} style={{ display: 'flex', alignItems: 'center', background: '#fef3c7', color: '#b45309', borderRadius: '16px', padding: '4px 8px 4px 4px', fontSize: '0.85rem' }}>
-                        <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "0.7rem", flexShrink: 0, marginRight: '6px' }}>
-                          <Users size={12} />
-                        </div>
-                        <span style={{ marginRight: '6px', fontWeight: 500 }}>{name}</span>
-                        <X size={14} color="#b45309" style={{ cursor: 'pointer' }} onClick={() => setSelectedFavorites(selectedFavorites.filter(fid => fid !== id))} />
+                      <div key={id} style={{ background: '#10b981', color: 'white', padding: '6px 12px', borderRadius: '15px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        {name}
+                        <X size={14} style={{ cursor: 'pointer' }} onClick={() => setSelectedFavorites(selectedFavorites.filter(sId => sId !== id))} />
                       </div>
                     );
                   })}
@@ -1833,50 +1858,128 @@ export default function ChatPage() {
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1, padding: '0 5px', color: 'black' }} className="custom-scrollbar">
-              {chats && chats.length > 0 && chats.filter(c => !favoriteSearch || ((c.isGroupChat ? c.chatName : c.users.find((u: any) => u._id !== user?._id)?.name) || "").toLowerCase().includes(favoriteSearch.toLowerCase())).map(chat => (
-                <div key={chat._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
-                  if (selectedFavorites.includes(chat._id)) {
-                    setSelectedFavorites(selectedFavorites.filter(id => id !== chat._id));
-                  } else {
-                    setSelectedFavorites([...selectedFavorites, chat._id]);
-                  }
-                }}>
-                  <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: selectedFavorites.includes(chat._id) ? 'none' : '2px solid #d1d5db', background: selectedFavorites.includes(chat._id) ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {selectedFavorites.includes(chat._id) && <Check size={14} color="white" strokeWidth={3} />}
-                  </div>
-                  <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1rem", flexShrink: 0 }}>
-                    {(!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName).charAt(0).toUpperCase()}
-                  </div>
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <div style={{ fontWeight: 500, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName} {(!chat.isGroupChat && chat.users.find((u: any) => u._id !== user?._id)?._id === user?._id) && "(You)"}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.email : "Group Chat"}
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {isSearchingFavorites ? (
+                 <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Searching...</div>
+              ) : favoriteSearch ? (
+                 favoriteSearchResults.length > 0 ? (
+                   favoriteSearchResults.map(searchUser => {
+                     // Check if this user is already pinned in existing chats
+                     const existingChat = chats.find(c => !c.isGroupChat && c.users.some((u: any) => u._id === searchUser._id));
+                     const isPinned = existingChat && user?.pinnedChats?.includes(existingChat._id);
+                     const isSelected = selectedFavorites.includes(searchUser._id) || isPinned;
+                     
+                     return (
+                      <div key={searchUser._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
+                        if (selectedFavorites.includes(searchUser._id)) {
+                          setSelectedFavorites(selectedFavorites.filter(id => id !== searchUser._id));
+                        } else {
+                          setSelectedFavorites([...selectedFavorites, searchUser._id]);
+                        }
+                      }}>
+                        <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                          <img src={searchUser.pic} alt={searchUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 500, fontSize: '1rem', color: '#1f2937' }}>{searchUser.name}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{searchUser.email}</div>
+                        </div>
+                        <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: isSelected ? 'none' : '2px solid #d1d5db', background: isSelected ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {isSelected && <Check size={14} color="white" strokeWidth={3} />}
+                        </div>
+                      </div>
+                     );
+                   })
+                 ) : (
+                   <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No users found for "{favoriteSearch}"</div>
+                 )
+              ) : (
+                 chats && chats.length > 0 ? (
+                   chats.map(chat => {
+                     const isSelected = selectedFavorites.includes(chat._id) || user?.pinnedChats?.includes(chat._id);
+                     return (
+                      <div key={chat._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
+                        if (selectedFavorites.includes(chat._id)) {
+                          setSelectedFavorites(selectedFavorites.filter(id => id !== chat._id));
+                        } else {
+                          setSelectedFavorites([...selectedFavorites, chat._id]);
+                        }
+                      }}>
+                        <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                          {chat.isGroupChat ? (
+                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: 'white', fontWeight: 600 }}>
+                               {chat.chatName.charAt(0).toUpperCase()}
+                             </div>
+                          ) : (
+                             <img src={chat.users.find((u: any) => u._id !== user?._id)?.pic} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 500, fontSize: '1rem', color: '#1f2937' }}>
+                            {chat.isGroupChat ? chat.chatName : chat.users.find((u: any) => u._id !== user?._id)?.name}
+                          </div>
+                        </div>
+                        <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: isSelected ? 'none' : '2px solid #d1d5db', background: isSelected ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {isSelected && <Check size={14} color="white" strokeWidth={3} />}
+                        </div>
+                      </div>
+                     );
+                   })
+                 ) : (
+                   <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No chats yet. Search for users to add.</div>
+                 )
+              )}
             </div>
             
             <div 
               onClick={async () => {
                 if (isSavingFavorites) return;
                 setIsSavingFavorites(true);
-                const toToggle = [];
-                for (const chat of chats) {
-                  const currentlyPinned = user?.pinnedChats?.includes(chat._id) || false;
-                  const shouldBePinned = selectedFavorites.includes(chat._id);
-                  if (currentlyPinned !== shouldBePinned) {
-                    toToggle.push(chat._id);
+                
+                try {
+                  const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+                  const toToggleChats = [];
+                  
+                  // Process unselected chats (to unpin)
+                  for (const chat of chats) {
+                    const currentlyPinned = user?.pinnedChats?.includes(chat._id) || false;
+                    const isStillSelected = selectedFavorites.includes(chat._id);
+                    // If it was pinned but they unchecked it
+                    if (currentlyPinned && !isStillSelected) {
+                      toToggleChats.push(chat._id);
+                    }
                   }
+                  
+                  // Process selected favorites
+                  for (const selectedId of selectedFavorites) {
+                    // Check if the selectedId is a Chat ID or a User ID
+                    let chatId = selectedId;
+                    
+                    // If it's a User ID, we need to create/access the chat first
+                    const isExistingChat = chats.find(c => c._id === selectedId);
+                    if (!isExistingChat) {
+                      // It's a User ID, so we create a chat
+                      const { data } = await axios.post(`${ENDPOINT}/api/chat`, { userId: selectedId }, config);
+                      chatId = data._id;
+                    }
+                    
+                    // Check if it's already pinned
+                    const currentlyPinned = user?.pinnedChats?.includes(chatId) || false;
+                    if (!currentlyPinned) {
+                       toToggleChats.push(chatId);
+                    }
+                  }
+                  
+                  for (const id of toToggleChats) {
+                    await handlePinChat(id);
+                  }
+                  
+                  setIsSavingFavorites(false);
+                  setIsFavoritesModalOpen(false);
+                  setToastMessage("successfully added to favourite");
+                } catch (error) {
+                  console.error(error);
+                  setIsSavingFavorites(false);
                 }
-                for (const id of toToggle) {
-                  await handlePinChat(id);
-                }
-                setIsSavingFavorites(false);
-                setIsFavoritesModalOpen(false);
-                setToastMessage("successfully added to favourite");
               }}
               style={{ position: 'absolute', bottom: '20px', right: '20px', width: '56px', height: '56px', borderRadius: '50%', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSavingFavorites ? 'not-allowed' : 'pointer', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', opacity: isSavingFavorites ? 0.7 : 1 }}
               className="hover:bg-emerald-600 transition-colors"
