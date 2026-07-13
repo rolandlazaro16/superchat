@@ -2096,55 +2096,59 @@ export default function ChatPage() {
       {/* Favorites Modal */}
       {isFavoritesModalOpen && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "16px", position: "relative", background: "white", color: "black", display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '10px' }}>
-               <button onClick={() => setIsFavoritesModalOpen(false)} style={{ background: "none", border: "none", color: "black", fontSize: "1.2rem", cursor: "pointer", display: 'flex' }}>✕</button>
-               <h2 style={{ fontSize: "1.2rem", fontWeight: 600 }}>Select Contacts to Favorite</h2>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "16px", position: "relative", background: "white", color: "black", display: 'flex', flexDirection: 'column', maxHeight: '80vh', minHeight: '60vh' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '15px' }}>
+               <button onClick={() => setIsFavoritesModalOpen(false)} style={{ background: "none", border: "none", color: "#4b5563", cursor: "pointer", display: 'flex', padding: 0 }}>
+                 <X size={24} />
+               </button>
+               <h2 style={{ fontSize: "1.15rem", fontWeight: 500, color: '#1f2937' }}>Add to Favorites</h2>
             </div>
             
             <div style={{ padding: '0 5px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #22c55e', borderRadius: '20px', padding: '8px 15px', marginBottom: '15px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #22c55e', borderRadius: '24px', padding: '10px 15px', marginBottom: '20px' }}>
                 <Search size={18} color="#6b7280" />
                 <input 
                   type="text" 
-                  placeholder="Search for users to add..." 
+                  placeholder="Search name or number" 
                   value={favoriteSearch}
                   onChange={(e) => handleFavoriteSearch(e.target.value)}
-                  style={{ border: 'none', outline: 'none', width: '100%', marginLeft: '10px', fontSize: '0.9rem', color: 'black', background: 'transparent' }}
+                  style={{ border: 'none', outline: 'none', width: '100%', marginLeft: '10px', fontSize: '0.95rem', color: '#1f2937', background: 'transparent' }}
                 />
               </div>
 
               {/* Selected Favorites Pills */}
               {selectedFavorites.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '25px', padding: '0 5px' }}>
                   {selectedFavorites.map(id => {
                     let name = "User";
+                    let pic = "";
                     let u = favoriteSearchResults.find(u => u._id === id);
                     if (u) {
                       name = u.name;
+                      pic = u.pic;
                     } else {
                       const chat = chats.find(c => !c.isGroupChat && c.users.some((userObj: any) => userObj._id === id));
                       if (chat) {
                         const chatUser = chat.users.find((userObj: any) => userObj._id === id);
-                        if (chatUser) name = chatUser.name;
+                        if (chatUser) {
+                          name = chatUser.name;
+                          pic = chatUser.pic;
+                        }
                       }
                     }
                     
                     return (
-                      <div key={id} style={{ background: '#10b981', color: 'white', padding: '6px 12px', borderRadius: '15px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <div key={id} style={{ background: 'transparent', color: '#1f2937', padding: '2px', borderRadius: '20px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img src={pic || "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"} alt="" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
                         {name}
-                        <X size={14} style={{ cursor: 'pointer' }} onClick={() => setSelectedFavorites(selectedFavorites.filter(sId => sId !== id))} />
+                        <X size={18} color="#6b7280" style={{ cursor: 'pointer', marginLeft: "4px" }} onClick={() => setSelectedFavorites(selectedFavorites.filter(sId => sId !== id))} />
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              <div style={{ background: '#dcfce7', borderRadius: '12px', padding: '12px 15px', fontSize: '0.85rem', color: '#064e3b', marginBottom: '20px' }}>
-                Add as many people or groups as you want. Only you can see who's included on your lists.
-              </div>
-
-              <h4 style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '10px', fontWeight: 500 }}>Recent chats</h4>
+              <h4 style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '15px', fontWeight: 400 }}>Recent chats</h4>
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1, padding: '0 5px', color: 'black' }} className="custom-scrollbar">
@@ -2155,22 +2159,22 @@ export default function ChatPage() {
                      const isSelected = selectedFavorites.includes(searchUser._id);
                      
                      return (
-                      <div key={searchUser._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
+                      <div key={searchUser._id} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 0', cursor: 'pointer' }} onClick={() => {
                         if (selectedFavorites.includes(searchUser._id)) {
                           setSelectedFavorites(selectedFavorites.filter(id => id !== searchUser._id));
                         } else {
                           setSelectedFavorites([...selectedFavorites, searchUser._id]);
                         }
                       }}>
-                        <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: isSelected ? 'none' : '2px solid #9ca3af', background: isSelected ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {isSelected && <Check size={14} color="white" strokeWidth={3} />}
+                        </div>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
                           <img src={searchUser.pic} alt={searchUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 500, fontSize: '1rem', color: '#1f2937' }}>{searchUser.name}</div>
-                          <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{searchUser.email}</div>
-                        </div>
-                        <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: isSelected ? 'none' : '2px solid #d1d5db', background: isSelected ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {isSelected && <Check size={14} color="white" strokeWidth={3} />}
+                          <div style={{ fontWeight: 400, fontSize: '1.05rem', color: '#1f2937', marginBottom: '2px' }}>{searchUser.name}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{searchUser.email}</div>
                         </div>
                       </div>
                      );
