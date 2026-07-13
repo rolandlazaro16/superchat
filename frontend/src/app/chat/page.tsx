@@ -428,6 +428,20 @@ export default function ChatPage() {
 
   const handleFavoriteSearch = async (query: string) => {
     setFavoriteSearch(query);
+    if (!query) {
+      const recentUsers: any[] = [];
+      chats.forEach(chat => {
+        if (!chat.isGroupChat) {
+          const otherUser = chat.users.find((u: any) => u._id !== user?._id);
+          if (otherUser && !recentUsers.some(ru => ru._id === otherUser._id)) {
+            recentUsers.push(otherUser);
+          }
+        }
+      });
+      setFavoriteSearchResults(recentUsers);
+      return;
+    }
+
     try {
       setIsSearchingFavorites(true);
       const config = { headers: { Authorization: `Bearer ${user?.token}` } };
@@ -1070,7 +1084,7 @@ export default function ChatPage() {
     if (isFavoritesModalOpen) {
       handleFavoriteSearch("");
     }
-  }, [isFavoritesModalOpen]);
+  }, [isFavoritesModalOpen, chats, user]);
 
   return (
     <>
