@@ -154,6 +154,7 @@ export default function ChatPage() {
   const [callType, setCallType] = useState<"video" | "audio" | null>(null);
   const [incomingCallData, setIncomingCallData] = useState<any>(null);
   const [callUserObj, setCallUserObj] = useState<any>(null);
+  const [callStartTime, setCallStartTime] = useState<number | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
@@ -823,6 +824,7 @@ export default function ChatPage() {
   const acceptCall = async () => {
     if (!incomingCallData) return;
     setCallStatus("active");
+    setCallStartTime(Date.now());
     setCallUserObj({ _id: incomingCallData.from, name: incomingCallData.callerInfo.name });
     
     const stream = await setupMediaStream(callType || "video");
@@ -855,15 +857,43 @@ export default function ChatPage() {
     }
   };
 
-  const endCall = () => {
+  const endCall = async () => {
     if (callUserObj && socket) {
       socket.emit("end call", { to: callUserObj._id });
     }
     stopMediaStream();
     setCallStatus("idle");
+    
+    if (callStartTime && selectedChat) {
+      const durationSecs = Math.floor((Date.now() - callStartTime) / 1000);
+      const mins = Math.floor(durationSecs / 60);
+      const secs = durationSecs % 60;
+      const durationStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+      
+      // Only the caller sends the system message to avoid duplicates
+      if (!incomingCallData) {
+        try {
+          const config = { headers: { "Content-type": "application/json", Authorization: `Bearer ${user?.token}` } };
+          const { data } = await axios.post(
+            `${ENDPOINT}/api/message`,
+            { content: `📞 ${callType === "video" ? "Video" : "Audio"} Call ended - Duration: ${durationStr}`, chatId: selectedChat._id },
+            config
+          );
+          if (socket) {
+            socket.emit("new message", data);
+          }
+          setMessages((prev: any) => [...prev, data]);
+          setFetchAgain(!fetchAgain);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }
+
     setCallType(null);
     setIncomingCallData(null);
     setCallUserObj(null);
+    setCallStartTime(null);
   };
 
   useEffect(() => {
@@ -932,6 +962,7 @@ export default function ChatPage() {
 
       socket.on("call accepted", async (signal: any) => {
         setCallStatus("active");
+        setCallStartTime(Date.now());
         if (peerConnectionRef.current) {
           try {
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(signal));
@@ -959,12 +990,37 @@ export default function ChatPage() {
         }
       });
 
-      socket.on("call ended", () => {
+      socket.on("call ended", async () => {
         stopMediaStream();
         setCallStatus("idle");
+
+        if (callStartTime && selectedChat) {
+          const durationSecs = Math.floor((Date.now() - callStartTime) / 1000);
+          const mins = Math.floor(durationSecs / 60);
+          const secs = durationSecs % 60;
+          const durationStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+          
+          if (!incomingCallData) {
+            try {
+              const config = { headers: { "Content-type": "application/json", Authorization: `Bearer ${user?.token}` } };
+              const { data } = await axios.post(
+                `${ENDPOINT}/api/message`,
+                { content: `📞 ${callType === "video" ? "Video" : "Audio"} Call ended - Duration: ${durationStr}`, chatId: selectedChat._id },
+                config
+              );
+              socket.emit("new message", data);
+              setMessages((prev: any) => [...prev, data]);
+              setFetchAgain(!fetchAgain);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+
         setCallType(null);
         setIncomingCallData(null);
         setCallUserObj(null);
+        setCallStartTime(null);
       });
 
       socket.on("message deleted", (deletedMessage: any) => {
