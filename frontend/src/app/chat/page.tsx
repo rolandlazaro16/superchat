@@ -1790,7 +1790,7 @@ export default function ChatPage() {
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1, padding: '0 5px', color: 'black' }} className="custom-scrollbar">
-              {chats && chats.length > 0 && chats.filter(c => !favoriteSearch || (c.isGroupChat ? c.chatName : c.users.find((u: any) => u._id !== user?._id)?.name)?.toLowerCase().includes(favoriteSearch.toLowerCase())).map(chat => (
+              {chats && chats.length > 0 && chats.filter(c => !favoriteSearch || ((c.isGroupChat ? c.chatName : c.users.find((u: any) => u._id !== user?._id)?.name) || "").toLowerCase().includes(favoriteSearch.toLowerCase())).map(chat => (
                 <div key={chat._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
                   if (selectedFavorites.includes(chat._id)) {
                     setSelectedFavorites(selectedFavorites.filter(id => id !== chat._id));
