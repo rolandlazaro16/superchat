@@ -1255,7 +1255,19 @@ export default function ChatPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
 
                   <div 
-                    onClick={() => { setSelectedFavorites(user?.pinnedChats || []); setIsFavoritesModalOpen(true); }}
+                    onClick={() => {
+                      // Extract user IDs from pinned chats
+                      const initialUserIds = user?.pinnedChats?.map(chatId => {
+                        const chat = chats.find(c => c._id === chatId);
+                        if (chat && !chat.isGroupChat) {
+                          const otherUser = chat.users.find((u: any) => u._id !== user?._id);
+                          return otherUser?._id;
+                        }
+                        return null;
+                      }).filter(Boolean) || [];
+                      setSelectedFavorites(initialUserIds);
+                      setIsFavoritesModalOpen(true);
+                    }}
                     style={{ width: '120px', height: '120px', background: 'rgba(30, 41, 59, 0.4)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', position: 'relative', cursor: 'pointer' }}
                     className="hover:scale-105 transition-transform"
                   >
@@ -1271,7 +1283,18 @@ export default function ChatPage() {
                     Make it easy to find the people and groups that matter most across SuperChat.
                   </p>
                   <button 
-                    onClick={() => { setSelectedFavorites(user?.pinnedChats || []); setIsFavoritesModalOpen(true); }}
+                    onClick={() => {
+                      const initialUserIds = user?.pinnedChats?.map(chatId => {
+                        const chat = chats.find(c => c._id === chatId);
+                        if (chat && !chat.isGroupChat) {
+                          const otherUser = chat.users.find((u: any) => u._id !== user?._id);
+                          return otherUser?._id;
+                        }
+                        return null;
+                      }).filter(Boolean) || [];
+                      setSelectedFavorites(initialUserIds);
+                      setIsFavoritesModalOpen(true);
+                    }}
                     style={{ 
                       background: '#10b981', 
                       color: 'white', 
@@ -1811,7 +1834,7 @@ export default function ChatPage() {
           <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "16px", position: "relative", background: "white", color: "black", display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '10px' }}>
                <button onClick={() => setIsFavoritesModalOpen(false)} style={{ background: "none", border: "none", color: "black", fontSize: "1.2rem", cursor: "pointer", display: 'flex' }}>✕</button>
-               <h2 style={{ fontSize: "1.2rem", fontWeight: 600 }}>Add to Favorites</h2>
+               <h2 style={{ fontSize: "1.2rem", fontWeight: 600 }}>Select Contacts to Favorite</h2>
             </div>
             
             <div style={{ padding: '0 5px' }}>
@@ -1830,14 +1853,16 @@ export default function ChatPage() {
               {selectedFavorites.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
                   {selectedFavorites.map(id => {
-                    // Try to find the user in existing chats first, then in search results
                     let name = "User";
-                    let chatOrUser = chats.find(c => c._id === id);
-                    if (chatOrUser) {
-                       name = chatOrUser.isGroupChat ? chatOrUser.chatName : chatOrUser.users.find((u: any) => u._id !== user?._id)?.name;
+                    let u = favoriteSearchResults.find(u => u._id === id);
+                    if (u) {
+                      name = u.name;
                     } else {
-                       let u = favoriteSearchResults.find(u => u._id === id);
-                       if (u) name = u.name;
+                      const chat = chats.find(c => !c.isGroupChat && c.users.some((userObj: any) => userObj._id === id));
+                      if (chat) {
+                        const chatUser = chat.users.find((userObj: any) => userObj._id === id);
+                        if (chatUser) name = chatUser.name;
+                      }
                     }
                     
                     return (
@@ -1859,14 +1884,10 @@ export default function ChatPage() {
 
             <div style={{ overflowY: 'auto', flex: 1, padding: '0 5px', color: 'black' }} className="custom-scrollbar">
               {isSearchingFavorites ? (
-                 <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Searching...</div>
-              ) : favoriteSearch ? (
-                 favoriteSearchResults.length > 0 ? (
+                 <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Loading...</div>
+              ) : favoriteSearchResults.length > 0 ? (
                    favoriteSearchResults.map(searchUser => {
-                     // Check if this user is already pinned in existing chats
-                     const existingChat = chats.find(c => !c.isGroupChat && c.users.some((u: any) => u._id === searchUser._id));
-                     const isPinned = existingChat && user?.pinnedChats?.includes(existingChat._id);
-                     const isSelected = selectedFavorites.includes(searchUser._id) || isPinned;
+                     const isSelected = selectedFavorites.includes(searchUser._id);
                      
                      return (
                       <div key={searchUser._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
@@ -1890,44 +1911,8 @@ export default function ChatPage() {
                      );
                    })
                  ) : (
-                   <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No users found for "{favoriteSearch}"</div>
-                 )
-              ) : (
-                 chats && chats.length > 0 ? (
-                   chats.map(chat => {
-                     const isSelected = selectedFavorites.includes(chat._id) || user?.pinnedChats?.includes(chat._id);
-                     return (
-                      <div key={chat._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0', cursor: 'pointer' }} onClick={() => {
-                        if (selectedFavorites.includes(chat._id)) {
-                          setSelectedFavorites(selectedFavorites.filter(id => id !== chat._id));
-                        } else {
-                          setSelectedFavorites([...selectedFavorites, chat._id]);
-                        }
-                      }}>
-                        <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
-                          {chat.isGroupChat ? (
-                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: 'white', fontWeight: 600 }}>
-                               {chat.chatName.charAt(0).toUpperCase()}
-                             </div>
-                          ) : (
-                             <img src={chat.users.find((u: any) => u._id !== user?._id)?.pic} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          )}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 500, fontSize: '1rem', color: '#1f2937' }}>
-                            {chat.isGroupChat ? chat.chatName : chat.users.find((u: any) => u._id !== user?._id)?.name}
-                          </div>
-                        </div>
-                        <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: isSelected ? 'none' : '2px solid #d1d5db', background: isSelected ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {isSelected && <Check size={14} color="white" strokeWidth={3} />}
-                        </div>
-                      </div>
-                     );
-                   })
-                 ) : (
-                   <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No chats yet. Search for users to add.</div>
-                 )
-              )}
+                   <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No users found.</div>
+                 )}
             </div>
             
             <div 
@@ -1939,36 +1924,44 @@ export default function ChatPage() {
                   const config = { headers: { Authorization: `Bearer ${user?.token}` } };
                   const toToggleChats = [];
                   
-                  // Process unselected chats (to unpin)
-                  for (const chat of chats) {
-                    const currentlyPinned = user?.pinnedChats?.includes(chat._id) || false;
-                    const isStillSelected = selectedFavorites.includes(chat._id);
-                    // If it was pinned but they unchecked it
-                    if (currentlyPinned && !isStillSelected) {
-                      toToggleChats.push(chat._id);
+                  // Extract original User IDs that were pinned
+                  const initialUserIds = user?.pinnedChats?.map(chatId => {
+                    const chat = chats.find(c => c._id === chatId);
+                    if (chat && !chat.isGroupChat) {
+                      const otherUser = chat.users.find((u: any) => u._id !== user?._id);
+                      return otherUser?._id;
+                    }
+                    return null;
+                  }).filter(Boolean) || [];
+                  
+                  // Find users to UNPIN (they were in initial, but not in selected)
+                  for (const userId of initialUserIds) {
+                    if (!selectedFavorites.includes(userId)) {
+                      // Find the chat for this user and unpin it
+                      const chatToUnpin = chats.find(c => !c.isGroupChat && c.users.some((u: any) => u._id === userId));
+                      if (chatToUnpin) {
+                        toToggleChats.push(chatToUnpin._id);
+                      }
                     }
                   }
                   
-                  // Process selected favorites
-                  for (const selectedId of selectedFavorites) {
-                    // Check if the selectedId is a Chat ID or a User ID
-                    let chatId = selectedId;
-                    
-                    // If it's a User ID, we need to create/access the chat first
-                    const isExistingChat = chats.find(c => c._id === selectedId);
-                    if (!isExistingChat) {
-                      // It's a User ID, so we create a chat
-                      const { data } = await axios.post(`${ENDPOINT}/api/chat`, { userId: selectedId }, config);
-                      chatId = data._id;
-                    }
-                    
-                    // Check if it's already pinned
-                    const currentlyPinned = user?.pinnedChats?.includes(chatId) || false;
-                    if (!currentlyPinned) {
-                       toToggleChats.push(chatId);
+                  // Find users to PIN (they are in selected, but not in initial)
+                  for (const userId of selectedFavorites) {
+                    if (!initialUserIds.includes(userId)) {
+                      // Find existing chat or create one
+                      let chatId;
+                      const existingChat = chats.find(c => !c.isGroupChat && c.users.some((u: any) => u._id === userId));
+                      if (existingChat) {
+                        chatId = existingChat._id;
+                      } else {
+                        const { data } = await axios.post(`${ENDPOINT}/api/chat`, { userId }, config);
+                        chatId = data._id;
+                      }
+                      toToggleChats.push(chatId);
                     }
                   }
                   
+                  // Perform toggles
                   for (const id of toToggleChats) {
                     await handlePinChat(id);
                   }
