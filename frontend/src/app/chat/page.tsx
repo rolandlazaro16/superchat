@@ -488,6 +488,11 @@ export default function ChatPage() {
   // Voice Recording Functions
   const startVoiceRecording = async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Your browser does not support audio recording or it is blocked.");
+        return;
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -501,7 +506,7 @@ export default function ChatPage() {
 
       mediaRecorder.onstop = async () => {
         if (audioChunksRef.current.length === 0) return;
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
@@ -511,7 +516,7 @@ export default function ChatPage() {
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(200); // Record in 200ms chunks to ensure data fires
       setIsRecording(true);
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
