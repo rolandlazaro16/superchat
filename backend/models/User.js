@@ -24,7 +24,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: false,
   },
-  pinnedChats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
   deletedChats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
   blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   hiddenContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

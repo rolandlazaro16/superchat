@@ -119,25 +119,6 @@ const createGroupChat = async (req, res) => {
   }
 };
 
-// @desc    Toggle Pin Chat
-// @route   PUT /api/chat/:id/pin
-// @access  Protected
-const togglePinChat = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    const chatId = req.params.id;
-    if (user.pinnedChats.some(id => id.toString() === chatId)) {
-      user.pinnedChats = user.pinnedChats.filter(id => id.toString() !== chatId);
-    } else {
-      user.pinnedChats.push(chatId);
-    }
-    user.markModified('pinnedChats');
-    await user.save();
-    res.status(200).json(user.pinnedChats);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
 
 // @desc    Delete Chat (hide for user)
 // @route   PUT /api/chat/:id/delete
@@ -180,7 +161,6 @@ module.exports = {
   accessChat,
   fetchChats,
   createGroupChat,
-  togglePinChat,
   deleteChatForUser,
   clearChatForUser,
 };

@@ -109,14 +109,8 @@ export default function ChatPage() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<string>("chats");
   const [callSearch, setCallSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "favorites">("all");
-  const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
-  const [favoriteSearch, setFavoriteSearch] = useState("");
-  const [favoriteSearchResults, setFavoriteSearchResults] = useState<any[]>([]);
-  const [isSearchingFavorites, setIsSearchingFavorites] = useState(false);
-  const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<"all" | "unread">("all");
   const [toastMessage, setToastMessage] = useState("");
-  const [isSavingFavorites, setIsSavingFavorites] = useState(false);
   const [readChatStatus, setReadChatStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -247,21 +241,6 @@ export default function ChatPage() {
       setRegisterError(err.response?.data?.message || "An error occurred.");
     } finally {
       setRegisterLoading(false);
-    }
-  };
-
-  const handlePinChat = async (chatId: string) => {
-    try {
-      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-      const { data } = await axios.put(`${ENDPOINT}/api/chat/${chatId}/pin`, {}, config);
-      if (user) {
-        const updatedUser = { ...user, pinnedChats: data };
-        setUser(updatedUser);
-        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
-      }
-      setFetchAgain(!fetchAgain);
-    } catch (error) {
-      console.error(error);
     }
   };
 
@@ -425,35 +404,6 @@ export default function ChatPage() {
       console.error(error);
     }
   };
-
-  const handleFavoriteSearch = async (query: string) => {
-    setFavoriteSearch(query);
-    if (!query) {
-      const recentUsers: any[] = [];
-      chats.forEach(chat => {
-        if (!chat.isGroupChat) {
-          const otherUser = chat.users.find((u: any) => u._id !== user?._id);
-          if (otherUser && !recentUsers.some(ru => ru._id === otherUser._id)) {
-            recentUsers.push(otherUser);
-          }
-        }
-      });
-      setFavoriteSearchResults(recentUsers);
-      return;
-    }
-
-    try {
-      setIsSearchingFavorites(true);
-      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-      const { data } = await axios.get(`${ENDPOINT}/api/user?search=${query}`, config);
-      setIsSearchingFavorites(false);
-      setFavoriteSearchResults(data);
-    } catch (error) {
-      console.error(error);
-      setIsSearchingFavorites(false);
-    }
-  };
-
 
   const accessChat = async (userId: string) => {
     try {
@@ -1080,12 +1030,6 @@ export default function ChatPage() {
     }
   }, [user, fetchAgain]);
 
-  useEffect(() => {
-    if (isFavoritesModalOpen) {
-      handleFavoriteSearch("");
-    }
-  }, [isFavoritesModalOpen, chats, user]);
-
   return (
     <>
       <style>{`
@@ -1383,12 +1327,6 @@ export default function ChatPage() {
           >
             Unread
           </span>
-          <span 
-            onClick={() => setActiveFilter('favorites')}
-            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'favorites' ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: activeFilter === 'favorites' ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
-          >
-            Favorites
-          </span>
         </div>
         
         {/* Chats List or Search Results */}
@@ -1439,72 +1377,7 @@ export default function ChatPage() {
           ) : (
             <>
               {/* Existing Chats */}
-              {activeFilter === 'favorites' && (!chats || chats.filter(chat => user?.pinnedChats?.includes(chat._id)).length === 0) ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
-
-                  <div 
-                    onClick={() => {
-                      // Extract user IDs from pinned chats
-                      const initialUserIds = user?.pinnedChats?.map(chatId => {
-                        const chat = chats.find(c => c._id === chatId);
-                        if (chat && !chat.isGroupChat) {
-                          const otherUser = chat.users.find((u: any) => u._id !== user?._id);
-                          return otherUser?._id;
-                        }
-                        return null;
-                      }).filter(Boolean) || [];
-                      setSelectedFavorites(initialUserIds);
-                      setIsFavoritesModalOpen(true);
-                    }}
-                    style={{ width: '120px', height: '120px', background: 'rgba(30, 41, 59, 0.4)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', position: 'relative', cursor: 'pointer' }}
-                    className="hover:scale-105 transition-transform"
-                  >
-                    <div style={{ width: '60px', height: '60px', background: '#34d399', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      <Plus size={30} color="white" strokeWidth={3} />
-                    </div>
-                    <div style={{ position: 'absolute', right: '-10px', bottom: '10px', width: '40px', height: '40px', background: '#34d399', borderRadius: '50% 50% 50% 10%', transform: 'rotate(45deg)', border: '3px solid #064e3b', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      <Heart size={20} color="#064e3b" fill="#064e3b" style={{ transform: 'rotate(-45deg)' }} />
-                    </div>
-                  </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white', marginBottom: '10px' }}>No favorites yet</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '20px', maxWidth: '280px', lineHeight: 1.5 }}>
-                    Make it easy to find the people and groups that matter most across SuperChat.
-                  </p>
-                  <button 
-                    onClick={() => {
-                      const initialUserIds = user?.pinnedChats?.map(chatId => {
-                        const chat = chats.find(c => c._id === chatId);
-                        if (chat && !chat.isGroupChat) {
-                          const otherUser = chat.users.find((u: any) => u._id !== user?._id);
-                          return otherUser?._id;
-                        }
-                        return null;
-                      }).filter(Boolean) || [];
-                      setSelectedFavorites(initialUserIds);
-                      setIsFavoritesModalOpen(true);
-                    }}
-                    style={{ 
-                      background: '#10b981', 
-                      color: 'white', 
-                      fontWeight: 600, 
-                      cursor: 'pointer', 
-                      padding: '12px 24px', 
-                      borderRadius: '24px',
-                      border: 'none',
-                      fontSize: '1rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                    }}
-                    className="hover:bg-emerald-400 hover:scale-105 transition-all"
-                  >
-                    Add to Favorites
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {chats && chats.length > 0 && chats
+              {chats && chats.length > 0 && chats
                     .filter((chat) => {
                       if (activeFilter === 'unread') {
                         if (selectedChat?._id === chat._id) return false;
@@ -1512,19 +1385,8 @@ export default function ChatPage() {
                         if (chat.latestMessage.sender._id === user?._id) return false;
                         return readChatStatus[chat._id] !== chat.latestMessage._id;
                       }
-                      if (activeFilter === 'favorites') {
-                        return user?.pinnedChats?.includes(chat._id);
-                      }
                       return true;
                     })
-                .slice()
-                .sort((a, b) => {
-                  const isAPinned = user?.pinnedChats?.includes(a._id);
-                  const isBPinned = user?.pinnedChats?.includes(b._id);
-                  if (isAPinned && !isBPinned) return -1;
-                  if (!isAPinned && isBPinned) return 1;
-                  return 0;
-                })
                 .map((chat) => (
               <div
                 onMouseEnter={() => setHoveredItemId(chat._id)}
@@ -1563,14 +1425,12 @@ export default function ChatPage() {
                 {openMenuId === chat._id && (
                   <ChatDropdownMenu 
                     closeMenu={() => setOpenMenuId(null)}
-                    onPin={() => handlePinChat(chat._id)}
                     onClear={() => handleClearChat(chat._id)}
                     onDelete={() => handleDeleteChat(chat._id)}
                     onBlock={() => {
                       const otherUser = chat.users.find((u: any) => u._id !== user?._id);
                       if (otherUser) confirmBlockUser(otherUser);
                     }}
-                    isPinned={user?.pinnedChats?.includes(chat._id) || false}
                   />
                 )}
 
@@ -1586,7 +1446,6 @@ export default function ChatPage() {
                       {!chat.isGroupChat
                         ? chat.users.find((u: any) => u._id !== user?._id)?.name
                         : chat.chatName}
-                      {user?.pinnedChats?.includes(chat._id) && <Pin size={14} color="var(--text-muted)" style={{ transform: "rotate(45deg)" }} />}
                     </div>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
                       {chat.latestMessage ? formatTime(chat.latestMessage.createdAt) : formatTime(chat.updatedAt)}
@@ -1674,8 +1533,6 @@ export default function ChatPage() {
                   <p>No other users registered yet.</p>
                 </div>
               )}
-                </>
-              )}
             </>
           )}
           </div>
@@ -1760,31 +1617,6 @@ export default function ChatPage() {
                 </div>
               ) : (
                 <>
-                  {/* Favorites */}
-                  <div style={{ padding: "15px 20px 5px 20px" }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Favorites</h3>
-                    <div 
-                      className="hover:bg-slate-800/50" 
-                      onClick={() => { 
-                        const initialUserIds = user?.pinnedChats?.map(chatId => {
-                          const chat = chats.find(c => c._id === chatId);
-                          if (chat && !chat.isGroupChat) {
-                            const otherUser = chat.users.find((u: any) => u._id !== user?._id);
-                            return otherUser?._id;
-                          }
-                          return null;
-                        }).filter(Boolean) || [];
-                        setSelectedFavorites(initialUserIds); 
-                        setIsFavoritesModalOpen(true); 
-                      }} 
-                      style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}
-                    >
-                      <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "white", flexShrink: 0 }}>
-                        <Plus size={24} />
-                      </div>
-                      <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem" }}>Add favorite</div>
-                    </div>
-                  </div>
 
                   {/* Recent */}
                   <div style={{ padding: "15px 20px", marginTop: "10px" }}>
@@ -1889,7 +1721,7 @@ export default function ChatPage() {
                       <div 
                         style={{ padding: "12px 20px", cursor: "pointer", fontSize: "15px", color: "white", transition: "background 0.2s" }}
                         className="hover:bg-slate-700/50"
-                        onClick={() => { setIsChatMenuOpen(false); setSelectedChat(null); }}
+                        onClick={(e) => { e.stopPropagation(); setIsChatMenuOpen(false); setSelectedChat(null); }}
                       >
                         Close chat
                       </div>
@@ -1983,19 +1815,19 @@ export default function ChatPage() {
                   )}
                   {showAttachmentMenu && (
                     <div style={{ position: "absolute", bottom: "80px", left: "60px", zIndex: 100, background: "white", borderRadius: "16px", padding: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", gap: "5px", width: "200px" }}>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => documentRef.current?.click()}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={(e) => { e.stopPropagation(); documentRef.current?.click(); }}>
                         <FileText size={20} color="#8b5cf6" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Document</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => mediaRef.current?.click()}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={(e) => { e.stopPropagation(); mediaRef.current?.click(); }}>
                         <Image size={20} color="#3b82f6" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Photos & videos</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={openCamera}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={(e) => { e.stopPropagation(); openCamera(); }}>
                         <Camera size={20} color="#ec4899" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Camera</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => audioRef.current?.click()}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={(e) => { e.stopPropagation(); audioRef.current?.click(); }}>
                         <Headphones size={20} color="#f97316" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Audio</span>
                       </div>
@@ -2107,164 +1939,6 @@ export default function ChatPage() {
           </div>
         )}
       </div>
-      {/* Favorites Modal */}
-      {isFavoritesModalOpen && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div className="glass-panel" style={{ width: "90%", maxWidth: "400px", padding: "1.5rem", borderRadius: "16px", position: "relative", background: "white", color: "black", display: 'flex', flexDirection: 'column', maxHeight: '80vh', minHeight: '60vh' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '15px' }}>
-               <button onClick={() => setIsFavoritesModalOpen(false)} style={{ background: "none", border: "none", color: "#4b5563", cursor: "pointer", display: 'flex', padding: 0 }}>
-                 <X size={24} />
-               </button>
-               <h2 style={{ fontSize: "1.15rem", fontWeight: 500, color: '#1f2937' }}>Add to Favorites</h2>
-            </div>
-            
-            <div style={{ padding: '0 5px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #22c55e', borderRadius: '24px', padding: '10px 15px', marginBottom: '20px' }}>
-                <Search size={18} color="#6b7280" />
-                <input 
-                  type="text" 
-                  placeholder="Search name or number" 
-                  value={favoriteSearch}
-                  onChange={(e) => handleFavoriteSearch(e.target.value)}
-                  style={{ border: 'none', outline: 'none', width: '100%', marginLeft: '10px', fontSize: '0.95rem', color: '#1f2937', background: 'transparent' }}
-                />
-              </div>
-
-              {/* Selected Favorites Pills */}
-              {selectedFavorites.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '25px', padding: '0 5px' }}>
-                  {selectedFavorites.map(id => {
-                    let name = "User";
-                    let pic = "";
-                    let u = favoriteSearchResults.find(u => u._id === id);
-                    if (u) {
-                      name = u.name;
-                      pic = u.pic;
-                    } else {
-                      const chat = chats.find(c => !c.isGroupChat && c.users.some((userObj: any) => userObj._id === id));
-                      if (chat) {
-                        const chatUser = chat.users.find((userObj: any) => userObj._id === id);
-                        if (chatUser) {
-                          name = chatUser.name;
-                          pic = chatUser.pic;
-                        }
-                      }
-                    }
-                    
-                    return (
-                      <div key={id} style={{ background: 'transparent', color: '#1f2937', padding: '2px', borderRadius: '20px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img src={pic || "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"} alt="" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
-                        {name}
-                        <X size={18} color="#6b7280" style={{ cursor: 'pointer', marginLeft: "4px" }} onClick={() => setSelectedFavorites(selectedFavorites.filter(sId => sId !== id))} />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <h4 style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '15px', fontWeight: 400 }}>Recent chats</h4>
-            </div>
-
-            <div style={{ overflowY: 'auto', flex: 1, padding: '0 5px', color: 'black' }} className="custom-scrollbar">
-              {isSearchingFavorites ? (
-                 <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Loading...</div>
-              ) : favoriteSearchResults.length > 0 ? (
-                   favoriteSearchResults.map(searchUser => {
-                     const isSelected = selectedFavorites.includes(searchUser._id);
-                     
-                     return (
-                      <div key={searchUser._id} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 0', cursor: 'pointer' }} onClick={() => {
-                        if (selectedFavorites.includes(searchUser._id)) {
-                          setSelectedFavorites(selectedFavorites.filter(id => id !== searchUser._id));
-                        } else {
-                          setSelectedFavorites([...selectedFavorites, searchUser._id]);
-                        }
-                      }}>
-                        <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: isSelected ? 'none' : '2px solid #9ca3af', background: isSelected ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {isSelected && <Check size={14} color="white" strokeWidth={3} />}
-                        </div>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
-                          <img src={searchUser.pic} alt={searchUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 400, fontSize: '1.05rem', color: '#1f2937', marginBottom: '2px' }}>{searchUser.name}</div>
-                          <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{searchUser.email}</div>
-                        </div>
-                      </div>
-                     );
-                   })
-                 ) : (
-                   <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No users found.</div>
-                 )}
-            </div>
-            
-            <div 
-              onClick={async () => {
-                if (isSavingFavorites) return;
-                setIsSavingFavorites(true);
-                
-                try {
-                  const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-                  const toToggleChats = [];
-                  
-                  // Extract original User IDs that were pinned
-                  const initialUserIds = user?.pinnedChats?.map(chatId => {
-                    const chat = chats.find(c => c._id === chatId);
-                    if (chat && !chat.isGroupChat) {
-                      const otherUser = chat.users.find((u: any) => u._id !== user?._id);
-                      return otherUser?._id;
-                    }
-                    return null;
-                  }).filter(Boolean) || [];
-                  
-                  // Find users to UNPIN (they were in initial, but not in selected)
-                  for (const userId of initialUserIds) {
-                    if (!selectedFavorites.includes(userId)) {
-                      // Find the chat for this user and unpin it
-                      const chatToUnpin = chats.find(c => !c.isGroupChat && c.users.some((u: any) => u._id === userId));
-                      if (chatToUnpin) {
-                        toToggleChats.push(chatToUnpin._id);
-                      }
-                    }
-                  }
-                  
-                  // Find users to PIN (they are in selected, but not in initial)
-                  for (const userId of selectedFavorites) {
-                    if (!initialUserIds.includes(userId)) {
-                      // Find existing chat or create one
-                      let chatId;
-                      const existingChat = chats.find(c => !c.isGroupChat && c.users.some((u: any) => u._id === userId));
-                      if (existingChat) {
-                        chatId = existingChat._id;
-                      } else {
-                        const { data } = await axios.post(`${ENDPOINT}/api/chat`, { userId }, config);
-                        chatId = data._id;
-                      }
-                      toToggleChats.push(chatId);
-                    }
-                  }
-                  
-                  // Perform toggles
-                  for (const id of toToggleChats) {
-                    await handlePinChat(id);
-                  }
-                  
-                  setIsSavingFavorites(false);
-                  setIsFavoritesModalOpen(false);
-                  setToastMessage("successfully added to favourite");
-                } catch (error) {
-                  console.error(error);
-                  setIsSavingFavorites(false);
-                }
-              }}
-              style={{ position: 'absolute', bottom: '20px', right: '20px', width: '56px', height: '56px', borderRadius: '50%', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSavingFavorites ? 'not-allowed' : 'pointer', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', opacity: isSavingFavorites ? 0.7 : 1 }}
-              className="hover:bg-emerald-600 transition-colors"
-            >
-              {isSavingFavorites ? <div style={{ width: "20px", height: "20px", border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%" }} className="animate-spin" /> : <Check size={28} />}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Registration Modal */}
       {isRegisterModalOpen && (

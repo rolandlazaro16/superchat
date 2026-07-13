@@ -10,7 +10,6 @@ interface UserInfo {
   profilePic?: string;
   token: string;
   isAdmin?: boolean;
-  pinnedChats?: string[];
   deletedChats?: string[];
   blockedUsers?: string[];
   hiddenContacts?: string[];
