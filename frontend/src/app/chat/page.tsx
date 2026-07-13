@@ -159,6 +159,19 @@ export default function ChatPage() {
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
 
+  // Sync refs for WebRTC socket listeners
+  const callStartTimeRef = useRef(callStartTime);
+  const callTypeRef = useRef(callType);
+  const incomingCallDataRef = useRef(incomingCallData);
+  const selectedChatRef = useRef(selectedChat);
+
+  useEffect(() => {
+    callStartTimeRef.current = callStartTime;
+    callTypeRef.current = callType;
+    incomingCallDataRef.current = incomingCallData;
+    selectedChatRef.current = selectedChat;
+  }, [callStartTime, callType, incomingCallData, selectedChat]);
+
   // Voice Recording States
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -994,23 +1007,23 @@ export default function ChatPage() {
         stopMediaStream();
         setCallStatus("idle");
 
-        if (callStartTime && selectedChat) {
-          const durationSecs = Math.floor((Date.now() - callStartTime) / 1000);
+        if (callStartTimeRef.current && selectedChatRef.current) {
+          const durationSecs = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
           const mins = Math.floor(durationSecs / 60);
           const secs = durationSecs % 60;
           const durationStr = `${mins}:${secs.toString().padStart(2, '0')}`;
           
-          if (!incomingCallData) {
+          if (!incomingCallDataRef.current) {
             try {
               const config = { headers: { "Content-type": "application/json", Authorization: `Bearer ${user?.token}` } };
               const { data } = await axios.post(
                 `${ENDPOINT}/api/message`,
-                { content: `📞 ${callType === "video" ? "Video" : "Audio"} Call ended - Duration: ${durationStr}`, chatId: selectedChat._id },
+                { content: `📞 ${callTypeRef.current === "video" ? "Video" : "Audio"} Call ended - Duration: ${durationStr}`, chatId: selectedChatRef.current._id },
                 config
               );
               socket.emit("new message", data);
               setMessages((prev: any) => [...prev, data]);
-              setFetchAgain(!fetchAgain);
+              setFetchAgain((prev) => !prev);
             } catch (error) {
               console.error(error);
             }
