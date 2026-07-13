@@ -156,6 +156,7 @@ export default function ChatPage() {
   const [callUserObj, setCallUserObj] = useState<any>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
 
   // Voice Recording States
   const [isRecording, setIsRecording] = useState(false);
@@ -163,6 +164,11 @@ export default function ChatPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Camera Refs
+  const cameraVideoRef = useRef<HTMLVideoElement>(null);
+  const cameraCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 
   // Attachment Refs
   const documentRef = useRef<HTMLInputElement>(null);
@@ -618,6 +624,52 @@ export default function ChatPage() {
     // Reset the input so the same file can be selected again
     e.target.value = '';
     setShowAttachmentMenu(false);
+  };
+
+  const openCamera = async () => {
+    setShowAttachmentMenu(false);
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Your browser does not support camera access.");
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setCameraStream(stream);
+      setShowCameraModal(true);
+      // Wait a tick for the modal to render the video element
+      setTimeout(() => {
+        if (cameraVideoRef.current) {
+          cameraVideoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error accessing camera", error);
+      alert("Could not access camera.");
+    }
+  };
+
+  const closeCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setShowCameraModal(false);
+  };
+
+  const capturePhoto = () => {
+    if (cameraVideoRef.current && cameraCanvasRef.current) {
+      const context = cameraCanvasRef.current.getContext('2d');
+      if (context) {
+        cameraCanvasRef.current.width = cameraVideoRef.current.videoWidth;
+        cameraCanvasRef.current.height = cameraVideoRef.current.videoHeight;
+        context.drawImage(cameraVideoRef.current, 0, 0, cameraCanvasRef.current.width, cameraCanvasRef.current.height);
+        const base64Image = cameraCanvasRef.current.toDataURL('image/png');
+        
+        // Re-use the attachment sending logic
+        sendVoiceMessage(base64Image); 
+        closeCamera();
+      }
+    }
   };
 
   const iceCandidateQueue = useRef<any[]>([]);
@@ -1841,7 +1893,7 @@ export default function ChatPage() {
                         <Image size={20} color="#3b82f6" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Photos & videos</span>
                       </div>
-                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={() => cameraRef.current?.click()}>
+                      <div className="hover:bg-slate-100" style={{ padding: "10px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onClick={openCamera}>
                         <Camera size={20} color="#ec4899" />
                         <span style={{ color: "#333", fontWeight: 500 }}>Camera</span>
                       </div>
@@ -1883,16 +1935,24 @@ export default function ChatPage() {
                       <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
                         <Trash2 size={20} color="#ef4444" style={{ cursor: "pointer" }} onClick={cancelVoiceRecording} />
                         <div onClick={stopVoiceRecording} style={{ background: "var(--primary-color)", borderRadius: "50%", width: "35px", height: "35px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "transform 0.2s" }} className="hover:scale-110">
-                          <Send size={16} color="white" style={{ marginLeft: "-2px" }} />
+                          <Send size={18} color="white" />
                         </div>
                       </div>
                     </div>
                   ) : (
                     <input
                       type="text"
-                      className="input-field"
-                      style={{ flex: 1, borderRadius: "20px", padding: "12px 20px", border: "none", background: "rgba(30, 41, 59, 0.7)", outline: "none", color: "white" }}
-                      placeholder="Type a message"
+                      placeholder="Type a message..."
+                      style={{
+                        flex: 1,
+                        background: "rgba(30, 41, 59, 0.7)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "20px",
+                        padding: "12px 20px",
+                        color: "white",
+                        fontSize: "0.95rem",
+                        outline: "none",
+                      }}
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyDown={(e) => {
@@ -1915,6 +1975,33 @@ export default function ChatPage() {
                 </div>
               );
             })()}
+
+            {/* In-App Camera Modal */}
+            {showCameraModal && (
+              <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", top: "20px", right: "20px", cursor: "pointer", background: "rgba(255,255,255,0.2)", borderRadius: "50%", padding: "8px" }} onClick={closeCamera}>
+                  <X size={28} color="white" />
+                </div>
+                
+                <h2 style={{ color: "white", marginBottom: "20px", fontSize: "1.5rem", fontWeight: "bold" }}>Take a Photo</h2>
+                
+                <div style={{ width: "90%", maxWidth: "600px", background: "#000", borderRadius: "16px", overflow: "hidden", position: "relative", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
+                  <video ref={cameraVideoRef} autoPlay playsInline style={{ width: "100%", height: "auto", display: "block" }} />
+                </div>
+                
+                <canvas ref={cameraCanvasRef} style={{ display: "none" }} />
+                
+                <div style={{ marginTop: "30px", display: "flex", gap: "20px" }}>
+                  <div 
+                    onClick={capturePhoto} 
+                    style={{ background: "#ec4899", color: "white", padding: "15px 40px", borderRadius: "30px", fontWeight: "bold", fontSize: "1.1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 4px 15px rgba(236, 72, 153, 0.4)", transition: "transform 0.2s" }}
+                    className="hover:scale-105"
+                  >
+                    <Camera size={24} /> Capture & Send
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="flex-center" style={{ flex: 1, height: "100%", fontSize: "1.5rem", color: "var(--text-muted)" }}>
