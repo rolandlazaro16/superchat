@@ -1242,7 +1242,7 @@ export default function ChatPage() {
                     Make it easy to find the people and groups that matter most across SuperChat.
                   </p>
                   <span 
-                    onClick={() => setIsFavoritesModalOpen(true)}
+                    onClick={() => { setSelectedFavorites(user?.pinnedChats || []); setIsFavoritesModalOpen(true); }}
                     style={{ color: '#10b981', fontWeight: 600, cursor: 'pointer', padding: '10px 20px' }}
                     className="hover:text-emerald-400"
                   >
@@ -1510,7 +1510,7 @@ export default function ChatPage() {
                   {/* Favorites */}
                   <div style={{ padding: "15px 20px 5px 20px" }}>
                     <h3 style={{ fontSize: "1rem", fontWeight: "600", color: "var(--text-light)", marginBottom: "15px" }}>Favorites</h3>
-                    <div className="hover:bg-slate-800/50" onClick={() => setIsFavoritesModalOpen(true)} style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
+                    <div className="hover:bg-slate-800/50" onClick={() => { setSelectedFavorites(user?.pinnedChats || []); setIsFavoritesModalOpen(true); }} style={{ display: "flex", alignItems: "center", gap: "15px", padding: "10px 0", cursor: "pointer", borderRadius: "8px", transition: "background 0.2s" }}>
                       <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "white", flexShrink: 0 }}>
                         <Plus size={24} />
                       </div>
@@ -1844,7 +1844,7 @@ export default function ChatPage() {
                 setIsSavingFavorites(true);
                 const toToggle = [];
                 for (const chat of chats) {
-                  const currentlyPinned = user?.pinnedChats?.includes(chat._id);
+                  const currentlyPinned = user?.pinnedChats?.includes(chat._id) || false;
                   const shouldBePinned = selectedFavorites.includes(chat._id);
                   if (currentlyPinned !== shouldBePinned) {
                     toToggle.push(chat._id);
