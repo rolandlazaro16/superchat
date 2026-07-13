@@ -1419,8 +1419,9 @@ export default function ChatPage() {
                   <p>No other users registered yet.</p>
                 </div>
               )}
+                </>
+              )}
             </>
-          )}
           )}
           </div>
         </div>
