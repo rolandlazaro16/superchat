@@ -1224,6 +1224,17 @@ export default function ChatPage() {
                   >
                     <div 
                       className="hover:bg-gray-100 transition-colors" 
+                      style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: 500, cursor: 'pointer', color: '#374151' }} 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        router.push('/profile'); 
+                        setIsProfileMenuOpen(false); 
+                      }}
+                    >
+                      <Settings size={20} /> Profile
+                    </div>
+                    <div 
+                      className="hover:bg-gray-100 transition-colors" 
                       style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: 500, cursor: 'pointer', color: '#e11d48' }} 
                       onClick={(e) => { 
                         e.stopPropagation(); 
