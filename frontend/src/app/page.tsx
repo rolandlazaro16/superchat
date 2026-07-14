@@ -132,7 +132,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
-              className={`relative z-10 flex-1 h-[45px] flex items-center justify-center text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
+              className={`relative z-10 flex-1 h-[40px] flex items-center justify-center text-sm font-bold rounded-lg transition-colors duration-300 tracking-wide ${
                 isLogin 
                   ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" 
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
@@ -143,7 +143,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => { setIsLogin(false); setError(""); }}
-              className={`relative z-10 flex-1 h-[45px] flex items-center justify-center text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
+              className={`relative z-10 flex-1 h-[40px] flex items-center justify-center text-sm font-bold rounded-lg transition-colors duration-300 tracking-wide ${
                 !isLogin 
                   ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" 
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
