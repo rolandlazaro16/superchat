@@ -112,14 +112,14 @@ export default function Home() {
       <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
       <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
 
-      <div className="glass-panel w-full max-w-md rounded-2xl p-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
+      <div className="glass-panel w-full max-w-md rounded-2xl pt-5 px-8 pb-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
         
         <div className="relative z-10">
-          <div className="text-center" style={{ marginBottom: "3rem" }}>
-            <h1 className="text-4xl font-extrabold tracking-tight mb-2" style={{ background: "linear-gradient(135deg, #818cf8 0%, #c084fc 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <div className="text-center" style={{ marginBottom: "2rem" }}>
+            <h1 className="text-4xl font-extrabold tracking-tight mb-1" style={{ background: "linear-gradient(135deg, #818cf8 0%, #c084fc 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Superchat
             </h1>
-            <p className="text-sm text-slate-400">Connect with your community instantly</p>
+            <p className="text-sm text-slate-400">Connect with your community</p>
           </div>
           
           <div className="flex bg-slate-800/50 rounded-lg p-1.5" style={{ marginBottom: "2.5rem" }}>
