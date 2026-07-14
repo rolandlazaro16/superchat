@@ -223,7 +223,7 @@ export default function Home() {
                 textShadow: "0 2px 8px rgba(0,0,0,0.2)",
               }}
             >
-              Welcome
+              Welcome to Superchat
             </h1>
             <h2
               className="uppercase"
@@ -235,7 +235,7 @@ export default function Home() {
                 marginBottom: "24px",
               }}
             >
-              Your Headline Name
+              Connect, Chat &amp; Stay Together
             </h2>
             <p
               style={{
@@ -245,9 +245,9 @@ export default function Home() {
                 maxWidth: "260px",
               }}
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+              Experience fast, secure, and real-time messaging with Superchat. Connect with friends, family, and colleagues anytime, anywhere.
               <br /><br />
-              Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper.
+              Share messages, exchange ideas, and build meaningful conversations in a simple and modern platform.
             </p>
           </div>
         </div>
