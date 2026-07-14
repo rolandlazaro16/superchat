@@ -115,7 +115,7 @@ export default function Home() {
       <div className="glass-panel w-full max-w-md rounded-2xl p-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
         
         <div className="relative z-10">
-          <div className="text-center mb-8">
+          <div className="text-center" style={{ marginBottom: "3rem" }}>
             <h1 className="text-4xl font-extrabold tracking-tight mb-2" style={{ background: "linear-gradient(135deg, #818cf8 0%, #c084fc 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Superchat
             </h1>
