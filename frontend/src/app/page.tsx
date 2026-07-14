@@ -122,7 +122,7 @@ export default function Home() {
             <p className="text-sm text-slate-400">Connect with your community instantly</p>
           </div>
           
-          <div className="flex mb-8 bg-slate-800/50 rounded-lg p-1">
+          <div className="flex mb-10 bg-slate-800/50 rounded-lg p-1">
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
@@ -153,7 +153,7 @@ export default function Home() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8 mt-4">
             {!isLogin && (
               <>
                 <div>
