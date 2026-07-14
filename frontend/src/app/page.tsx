@@ -122,7 +122,7 @@ export default function Home() {
             <p className="text-sm text-slate-400">Connect with your community instantly</p>
           </div>
           
-          <div className="flex mb-10 bg-slate-800/50 rounded-lg p-1">
+          <div className="flex bg-slate-800/50 rounded-lg p-1" style={{ marginBottom: "2.5rem" }}>
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
@@ -148,12 +148,12 @@ export default function Home() {
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm font-medium rounded-lg p-3 mb-6 text-center backdrop-blur-sm">
+            <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm font-medium rounded-lg p-3 text-center backdrop-blur-sm" style={{ marginBottom: "1.5rem" }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-8 mt-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8" style={{ marginTop: "1rem" }}>
             {!isLogin && (
               <>
                 <div>
