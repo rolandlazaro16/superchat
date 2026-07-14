@@ -109,14 +109,14 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center p-4 w-full" style={{ flex: 1, background: "radial-gradient(circle at top right, #ffffff, #f8fafc 40%, #e2e8f0 100%)" }}>
       
       {/* Abstract Background Elements */}
-      <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-200 rounded-full blur-[100px] opacity-40 pointer-events-none"></div>
-      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-blue-200 rounded-full blur-[100px] opacity-40 pointer-events-none"></div>
+      <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-emerald-200 rounded-full blur-[100px] opacity-40 pointer-events-none"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-teal-200 rounded-full blur-[100px] opacity-40 pointer-events-none"></div>
 
-      <div className="glass-panel w-full max-w-md rounded-2xl pt-5 px-8 pb-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-slate-300">
+      <div className="glass-panel bg-white/90 w-full max-w-md rounded-2xl pt-5 px-8 pb-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-slate-300">
         
         <div className="relative z-10">
           <div className="text-center" style={{ marginBottom: "2rem" }}>
-            <h1 className="text-4xl font-extrabold tracking-tight mb-1" style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <h1 className="text-4xl font-extrabold tracking-tight mb-1" style={{ background: "linear-gradient(135deg, #10b981 0%, #0f766e 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Superchat
             </h1>
             <p className="text-sm text-slate-500">Connect with your community</p>
@@ -125,7 +125,7 @@ export default function Home() {
           <div className="relative flex items-center bg-slate-100 rounded-xl p-1.5 border border-slate-200 shadow-inner shadow-slate-300/50" style={{ marginBottom: "2.5rem" }}>
             {/* Sliding Background Indicator with Soft Glow */}
             <div 
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-[0_4px_10px_rgba(99,102,241,0.3)] transition-transform duration-300 ease-out z-0`}
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg shadow-[0_4px_10px_rgba(16,185,129,0.3)] transition-transform duration-300 ease-out z-0`}
               style={{ transform: isLogin ? 'translateX(0)' : 'translateX(100%)' }}
             ></div>
 
@@ -166,7 +166,7 @@ export default function Home() {
                   <label className="block text-xs font-medium text-slate-600 uppercase tracking-wider mb-2 ml-1">Name</label>
                   <input
                     type="text"
-                    className="input-field !py-4 !px-4 !text-base bg-white border border-slate-200 shadow-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-xl w-full"
+                    className="input-field !py-4 !px-4 !text-base bg-white border border-slate-200 shadow-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent rounded-xl w-full"
                     placeholder="Enter your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -177,7 +177,7 @@ export default function Home() {
                   <input
                     type="file"
                     accept="image/*"
-                    className="w-full text-base text-slate-600 file:mr-4 file:py-4 file:px-6 file:rounded-xl file:border-0 file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 transition-all cursor-pointer bg-slate-50 border border-slate-200 shadow-sm rounded-xl"
+                    className="w-full text-base text-slate-600 file:mr-4 file:py-4 file:px-6 file:rounded-xl file:border-0 file:font-semibold file:bg-emerald-50 file:text-emerald-600 hover:file:bg-emerald-100 transition-all cursor-pointer bg-slate-50 border border-slate-200 shadow-sm rounded-xl"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         postDetails(e.target.files[0]);
@@ -192,7 +192,7 @@ export default function Home() {
               <label className="block text-xs font-medium text-slate-600 uppercase tracking-wider mb-2 ml-1">Email Address</label>
               <input
                 type="email"
-                className="input-field !py-4 !px-4 !text-base bg-white border border-slate-200 shadow-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-xl w-full"
+                className="input-field !py-4 !px-4 !text-base bg-white border border-slate-200 shadow-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent rounded-xl w-full"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -205,7 +205,7 @@ export default function Home() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="input-field !py-4 !px-4 !text-base bg-white border border-slate-200 shadow-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pr-14 rounded-xl w-full"
+                  className="input-field !py-4 !px-4 !text-base bg-white border border-slate-200 shadow-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-14 rounded-xl w-full"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -214,7 +214,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -223,7 +223,7 @@ export default function Home() {
 
             <button 
               type="submit" 
-              className="w-full mt-8 flex justify-center items-center h-[52px] rounded-xl font-bold text-white shadow-xl shadow-indigo-500/30 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-[1.05rem]"
+              className="w-full mt-8 flex justify-center items-center h-[52px] rounded-xl font-bold text-white shadow-xl shadow-emerald-500/30 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-[1.05rem]"
               disabled={picLoading || submitLoading}
             >
               {picLoading || submitLoading ? (
