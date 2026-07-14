@@ -160,7 +160,7 @@ export default function Home() {
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Name</label>
                   <input
                     type="text"
-                    className="input-field !py-2.5 !text-sm shadow-inner shadow-black/10"
+                    className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 rounded-xl"
                     placeholder="Enter your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -171,7 +171,7 @@ export default function Home() {
                   <input
                     type="file"
                     accept="image/*"
-                    className="w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 transition-all cursor-pointer shadow-inner shadow-black/10 rounded-lg bg-slate-800/30"
+                    className="w-full text-base text-slate-400 file:mr-4 file:py-4 file:px-6 file:rounded-xl file:border-0 file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 transition-all cursor-pointer shadow-inner shadow-black/10 rounded-xl bg-slate-800/30"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         postDetails(e.target.files[0]);
@@ -186,7 +186,7 @@ export default function Home() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Email Address</label>
               <input
                 type="email"
-                className="input-field !py-2.5 !text-sm shadow-inner shadow-black/10"
+                className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 rounded-xl"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -199,7 +199,7 @@ export default function Home() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="input-field !py-2.5 !text-sm shadow-inner shadow-black/10 pr-10"
+                  className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 pr-12 rounded-xl"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
