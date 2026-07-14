@@ -122,14 +122,20 @@ export default function Home() {
             <p className="text-sm text-slate-400">Connect with your community</p>
           </div>
           
-          <div className="flex bg-slate-800/50 rounded-lg p-1.5" style={{ marginBottom: "2.5rem" }}>
+          <div className="relative flex bg-slate-900/60 rounded-xl p-1.5 border border-slate-700/50 shadow-inner shadow-black/20" style={{ marginBottom: "2.5rem" }}>
+            {/* Sliding Background Indicator */}
+            <div 
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-md shadow-indigo-500/30 transition-transform duration-300 ease-out z-0`}
+              style={{ transform: isLogin ? 'translateX(0)' : 'translateX(100%)' }}
+            ></div>
+
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
-              className={`flex-1 py-3 text-base font-semibold rounded-md transition-all duration-300 ${
+              className={`relative z-10 flex-1 py-3 text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
                 isLogin 
-                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
-                  : "text-slate-400 hover:text-white"
+                  ? "text-white" 
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
               Login
@@ -137,10 +143,10 @@ export default function Home() {
             <button
               type="button"
               onClick={() => { setIsLogin(false); setError(""); }}
-              className={`flex-1 py-3 text-base font-semibold rounded-md transition-all duration-300 ${
+              className={`relative z-10 flex-1 py-3 text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
                 !isLogin 
-                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
-                  : "text-slate-400 hover:text-white"
+                  ? "text-white" 
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
               Sign Up
@@ -157,7 +163,7 @@ export default function Home() {
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Name</label>
+                  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 ml-1">Name</label>
                   <input
                     type="text"
                     className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 rounded-xl"
@@ -167,7 +173,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Profile Picture</label>
+                  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 ml-1">Profile Picture</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -183,7 +189,7 @@ export default function Home() {
             )}
             
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Email Address</label>
+              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 ml-1">Email Address</label>
               <input
                 type="email"
                 className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 rounded-xl"
@@ -195,7 +201,7 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Password</label>
+              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 ml-1">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
