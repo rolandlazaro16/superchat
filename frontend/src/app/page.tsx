@@ -104,26 +104,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 w-full" style={{ flex: 1 }}>
-      <div className="bg-white w-full max-w-md rounded-2xl p-8 shadow-xl relative overflow-hidden border border-gray-100">
-        
-        {/* Decorative background elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-green-400 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-400 rounded-full blur-3xl opacity-20 -ml-10 -mb-10 pointer-events-none"></div>
+    <div className="min-h-screen flex items-center justify-center p-4 w-full" style={{ flex: 1, background: "radial-gradient(circle at top right, #1e1b4b, #0f172a 40%, #020617 100%)" }}>
+      
+      {/* Abstract Background Elements */}
+      <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
+
+      <div className="glass-panel w-full max-w-md rounded-2xl p-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
         
         <div className="relative z-10">
-          <h1 className="text-center mb-6 text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500">
-            Superchat
-          </h1>
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-extrabold tracking-tight mb-2" style={{ background: "linear-gradient(135deg, #818cf8 0%, #c084fc 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Superchat
+            </h1>
+            <p className="text-sm text-slate-400">Connect with your community instantly</p>
+          </div>
           
-          <div className="flex mb-6 border-b border-gray-200">
+          <div className="flex mb-8 bg-slate-800/50 rounded-lg p-1">
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
-              className={`flex-1 p-3 text-sm font-semibold transition-colors border-b-2 ${
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
                 isLogin 
-                  ? "border-green-600 text-green-600" 
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               Login
@@ -131,37 +135,41 @@ export default function Home() {
             <button
               type="button"
               onClick={() => { setIsLogin(false); setError(""); }}
-              className={`flex-1 p-3 text-sm font-semibold transition-colors border-b-2 ${
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
                 !isLogin 
-                  ? "border-green-600 text-green-600" 
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               Sign Up
             </button>
           </div>
 
-          {error && <div className="text-red-500 mb-4 text-center text-sm font-medium">{error}</div>}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm font-medium rounded-lg p-3 mb-6 text-center backdrop-blur-sm">
+              {error}
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                    className="input-field"
                     placeholder="Enter your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Profile Picture</label>
                   <input
                     type="file"
                     accept="image/*"
-                    className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    className="w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 transition-all cursor-pointer"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         postDetails(e.target.files[0]);
@@ -173,10 +181,10 @@ export default function Home() {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Email Address</label>
               <input
                 type="email"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="input-field"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -185,10 +193,10 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="input-field"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -198,10 +206,14 @@ export default function Home() {
 
             <button 
               type="submit" 
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-xl mt-4 shadow-lg shadow-green-500/30 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="btn-primary w-full mt-4 flex justify-center items-center h-[52px]"
               disabled={picLoading || submitLoading}
             >
-              {picLoading ? "Uploading Image..." : submitLoading ? "Please wait..." : (isLogin ? "Login" : "Sign Up")}
+              {picLoading || submitLoading ? (
+                <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                isLogin ? "Login to Superchat" : "Create Account"
+              )}
             </button>
           </form>
         </div>
