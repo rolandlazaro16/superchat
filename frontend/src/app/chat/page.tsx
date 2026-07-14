@@ -92,6 +92,17 @@ export default function ChatPage() {
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
   
+  // Profile Settings Modal States
+  const [isProfileSettingsModalOpen, setIsProfileSettingsModalOpen] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profilePassword, setProfilePassword] = useState("");
+  const [profilePic, setProfilePic] = useState("");
+  const [profilePicLoading, setProfilePicLoading] = useState(false);
+  const [profileSubmitLoading, setProfileSubmitLoading] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState("");
+  
   // Block User Modal States
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [userToBlock, setUserToBlock] = useState<any>(null);
@@ -197,6 +208,86 @@ export default function ChatPage() {
     setChats([]);
     setMessages([]);
     router.push("/");
+  };
+
+  const postProfileDetails = (pics: any) => {
+    setProfilePicLoading(true);
+    setProfileError("");
+    setProfileSuccess("");
+    if (pics === undefined) {
+      setProfileError("Please Select an Image!");
+      setProfilePicLoading(false);
+      return;
+    }
+    if (pics.type === "image/jpeg" || pics.type === "image/png") {
+      const data = new FormData();
+      data.append("file", pics);
+      data.append("upload_preset", "superchat"); 
+      data.append("cloud_name", "your_cloud_name");
+      fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
+        method: "post",
+        body: data,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.url) {
+            setProfilePic(data.url.toString());
+          } else {
+            setProfileError("Failed to upload image. Please check Cloudinary config.");
+          }
+          setProfilePicLoading(false);
+        })
+        .catch((err) => {
+          console.error(err);
+          setProfileError("Error uploading image");
+          setProfilePicLoading(false);
+        });
+    } else {
+      setProfileError("Please Select an Image (JPEG/PNG)!");
+      setProfilePicLoading(false);
+      return;
+    }
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileError("");
+    setProfileSuccess("");
+    setProfileSubmitLoading(true);
+
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+      };
+
+      const payload: any = { name: profileName, email: profileEmail, profilePic };
+      if (profilePassword) {
+        payload.password = profilePassword;
+      }
+
+      const { data } = await axios.put(
+        `${ENDPOINT}/api/user/profile`,
+        payload,
+        config
+      );
+
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setUser(data);
+      setProfileSuccess("Profile updated successfully!");
+      setProfilePassword(""); 
+      
+      setTimeout(() => {
+        setIsProfileSettingsModalOpen(false);
+        setProfileSuccess("");
+      }, 2000);
+    } catch (err: any) {
+      setProfileError(err.response?.data?.message || "An error occurred.");
+    } finally {
+      setProfileSubmitLoading(false);
+    }
   };
 
   const handleRegisterNewUser = async (e: React.FormEvent) => {
@@ -1227,11 +1318,14 @@ export default function ChatPage() {
                       style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: 500, cursor: 'pointer', color: '#374151' }} 
                       onClick={(e) => { 
                         e.stopPropagation(); 
-                        router.push('/profile'); 
+                        setProfileName(user?.name || "");
+                        setProfileEmail(user?.email || "");
+                        setProfilePic(user?.profilePic || "");
+                        setIsProfileSettingsModalOpen(true); 
                         setIsProfileMenuOpen(false); 
                       }}
                     >
-                      <Settings size={20} /> Profile
+                      <Settings size={20} /> Settings
                     </div>
                     <div 
                       className="hover:bg-gray-100 transition-colors" 
@@ -1950,6 +2044,55 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      {/* Profile Settings Modal */}
+      {isProfileSettingsModalOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="glass-panel" style={{ width: "90%", maxWidth: "450px", padding: "2rem", borderRadius: "16px", position: "relative", background: "white" }}>
+            <button onClick={() => setIsProfileSettingsModalOpen(false)} style={{ position: "absolute", top: "15px", right: "15px", background: "none", border: "none", color: "#6b7280", fontSize: "1.2rem", cursor: "pointer" }}>✕</button>
+            <h2 style={{ textAlign: "center", marginBottom: "1.5rem", fontSize: "1.5rem", fontWeight: 700, color: "#1f2937" }}>Profile Settings</h2>
+            
+            {profileError && <div style={{ color: "#ff4d4f", marginBottom: "1rem", textAlign: "center", fontSize: "0.9rem", padding: "0.5rem", background: "#fef2f2", borderRadius: "8px" }}>{profileError}</div>}
+            {profileSuccess && <div style={{ color: "#10b981", marginBottom: "1rem", textAlign: "center", fontSize: "0.9rem", padding: "0.5rem", background: "#ecfdf5", borderRadius: "8px" }}>{profileSuccess}</div>}
+
+            <form onSubmit={handleProfileSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ position: "relative", width: "96px", height: "96px", borderRadius: "50%", background: "#d1fae5", border: "4px solid white", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} className="group">
+                  {profilePic ? (
+                    <img src={profilePic} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <span style={{ fontSize: "2.5rem", fontWeight: "bold", color: "#10b981" }}>{profileName ? profileName.charAt(0).toUpperCase() : "U"}</span>
+                  )}
+                  <label style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s", cursor: "pointer" }} className="group-hover:opacity-100">
+                    <Camera size={24} color="white" />
+                    <span style={{ color: "white", fontSize: "0.75rem", marginTop: "4px", fontWeight: 500 }}>Change</span>
+                    <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files && e.target.files[0]) postProfileDetails(e.target.files[0]); }} />
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem", color: "#374151", fontSize: "0.9rem", fontWeight: 500 }}>Full Name</label>
+                <input type="text" style={{ width: "100%", padding: "10px 16px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#f9fafb", color: "#1f2937", outline: "none" }} placeholder="Enter your name" value={profileName} onChange={(e) => setProfileName(e.target.value)} required />
+              </div>
+              
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem", color: "#374151", fontSize: "0.9rem", fontWeight: 500 }}>Email Address</label>
+                <input type="email" style={{ width: "100%", padding: "10px 16px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#f9fafb", color: "#1f2937", outline: "none" }} placeholder="Enter your email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} required />
+              </div>
+
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem", color: "#374151", fontSize: "0.9rem", fontWeight: 500 }}>New Password (Optional)</label>
+                <input type="password" style={{ width: "100%", padding: "10px 16px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#f9fafb", color: "#1f2937", outline: "none" }} placeholder="Leave blank to keep unchanged" value={profilePassword} onChange={(e) => setProfilePassword(e.target.value)} />
+              </div>
+
+              <button type="submit" style={{ width: "100%", background: "#10b981", color: "white", fontWeight: 500, padding: "12px", borderRadius: "10px", marginTop: "0.5rem", border: "none", cursor: "pointer", transition: "background 0.2s" }} disabled={profilePicLoading || profileSubmitLoading} className="hover:bg-emerald-600 disabled:opacity-70 disabled:cursor-not-allowed">
+                {profilePicLoading ? "Uploading Image..." : profileSubmitLoading ? "Saving..." : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Registration Modal */}
       {isRegisterModalOpen && (
