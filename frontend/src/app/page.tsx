@@ -122,11 +122,11 @@ export default function Home() {
             <p className="text-sm text-slate-400">Connect with your community instantly</p>
           </div>
           
-          <div className="flex bg-slate-800/50 rounded-lg p-1" style={{ marginBottom: "2.5rem" }}>
+          <div className="flex bg-slate-800/50 rounded-lg p-1.5" style={{ marginBottom: "2.5rem" }}>
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
+              className={`flex-1 py-3 text-base font-semibold rounded-md transition-all duration-300 ${
                 isLogin 
                   ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
                   : "text-slate-400 hover:text-white"
@@ -137,7 +137,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => { setIsLogin(false); setError(""); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
+              className={`flex-1 py-3 text-base font-semibold rounded-md transition-all duration-300 ${
                 !isLogin 
                   ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
                   : "text-slate-400 hover:text-white"
