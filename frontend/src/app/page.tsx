@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { ChatState } from "@/context/ChatProvider";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +15,7 @@ export default function Home() {
   const [picLoading, setPicLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { setUser } = ChatState();
 
@@ -151,25 +153,25 @@ export default function Home() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Name</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Name</label>
                   <input
                     type="text"
-                    className="input-field"
+                    className="input-field !py-2.5 !text-sm shadow-inner shadow-black/10"
                     placeholder="Enter your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Profile Picture</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Profile Picture</label>
                   <input
                     type="file"
                     accept="image/*"
-                    className="w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 transition-all cursor-pointer"
+                    className="w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 transition-all cursor-pointer shadow-inner shadow-black/10 rounded-lg bg-slate-800/30"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         postDetails(e.target.files[0]);
@@ -181,10 +183,10 @@ export default function Home() {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Email Address</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Email Address</label>
               <input
                 type="email"
-                className="input-field"
+                className="input-field !py-2.5 !text-sm shadow-inner shadow-black/10"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -193,20 +195,29 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Password</label>
-              <input
-                type="password"
-                className="input-field"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="input-field !py-2.5 !text-sm shadow-inner shadow-black/10 pr-10"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-400 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button 
               type="submit" 
-              className="btn-primary w-full mt-4 flex justify-center items-center h-[52px]"
+              className="w-full mt-4 flex justify-center items-center h-[52px] rounded-xl font-bold text-white shadow-xl shadow-indigo-500/30 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-[1.05rem]"
               disabled={picLoading || submitLoading}
             >
               {picLoading || submitLoading ? (
