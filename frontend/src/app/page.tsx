@@ -122,19 +122,19 @@ export default function Home() {
             <p className="text-sm text-slate-400">Connect with your community</p>
           </div>
           
-          <div className="relative flex bg-slate-900/60 rounded-xl p-1.5 border border-slate-700/50 shadow-inner shadow-black/20" style={{ marginBottom: "2.5rem" }}>
-            {/* Sliding Background Indicator */}
+          <div className="relative flex items-center bg-slate-900/60 rounded-xl p-1.5 border border-slate-700/50 shadow-inner shadow-black/20" style={{ marginBottom: "2.5rem" }}>
+            {/* Sliding Background Indicator with Soft Glow */}
             <div 
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-md shadow-indigo-500/30 transition-transform duration-300 ease-out z-0`}
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.5)] transition-transform duration-300 ease-out z-0`}
               style={{ transform: isLogin ? 'translateX(0)' : 'translateX(100%)' }}
             ></div>
 
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(""); }}
-              className={`relative z-10 flex-1 py-3 text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
+              className={`relative z-10 flex-1 h-[45px] flex items-center justify-center text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
                 isLogin 
-                  ? "text-white" 
+                  ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" 
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
@@ -143,9 +143,9 @@ export default function Home() {
             <button
               type="button"
               onClick={() => { setIsLogin(false); setError(""); }}
-              className={`relative z-10 flex-1 py-3 text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
+              className={`relative z-10 flex-1 h-[45px] flex items-center justify-center text-base font-bold rounded-lg transition-colors duration-300 tracking-wide ${
                 !isLogin 
-                  ? "text-white" 
+                  ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" 
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
