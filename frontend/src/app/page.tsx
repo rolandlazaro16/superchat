@@ -153,7 +153,7 @@ export default function Home() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
             {!isLogin && (
               <>
                 <div>
@@ -217,7 +217,7 @@ export default function Home() {
 
             <button 
               type="submit" 
-              className="w-full mt-4 flex justify-center items-center h-[52px] rounded-xl font-bold text-white shadow-xl shadow-indigo-500/30 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-[1.05rem]"
+              className="w-full mt-8 flex justify-center items-center h-[52px] rounded-xl font-bold text-white shadow-xl shadow-indigo-500/30 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-[1.05rem]"
               disabled={picLoading || submitLoading}
             >
               {picLoading || submitLoading ? (
