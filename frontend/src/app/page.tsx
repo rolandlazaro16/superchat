@@ -205,7 +205,7 @@ export default function Home() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 pr-12 rounded-xl"
+                  className="input-field !py-4 !px-4 !text-base shadow-inner shadow-black/10 pr-14 rounded-xl"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -214,7 +214,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-400 transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-400 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
