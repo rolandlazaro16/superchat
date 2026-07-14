@@ -106,7 +106,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 w-full" style={{ flex: 1, background: "radial-gradient(circle at top right, #1e3a8a, #172554 40%, #020617 100%)" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 w-full" style={{ flex: 1 }}>
       
       {/* Abstract Background Elements */}
       <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
