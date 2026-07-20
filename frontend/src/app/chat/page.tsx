@@ -1763,28 +1763,28 @@ export default function ChatPage() {
       <div className="main-chat-container" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {selectedChat ? (
           <>
-            <div className="glass-panel" style={{ padding: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", background: "rgba(15, 23, 42, 0.95)" }}>
+            <div className="glass-panel" style={{ padding: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--glass-border)", background: "#8ba1f8", color: "white" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                 <ArrowLeft 
                   size={24} 
-                  className="mobile-back-btn hover:text-white" 
-                  style={{ cursor: "pointer", color: "var(--text-light)", transition: "color 0.2s" }} 
+                  className="mobile-back-btn hover:text-gray-200" 
+                  style={{ cursor: "pointer", color: "white", transition: "color 0.2s" }} 
                   onClick={() => setSelectedChat(null)} 
                 />
-                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-hover)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
                   {(!selectedChat.isGroupChat ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name : selectedChat.chatName).charAt(0).toUpperCase()}
                 </div>
-                <h2 style={{ fontSize: "1.2rem", fontWeight: "600" }}>
+                <h2 style={{ fontSize: "1.2rem", fontWeight: "600", color: "white" }}>
                   {!selectedChat.isGroupChat
                     ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name
                     : selectedChat.chatName}
                 </h2>
               </div>
-              <div style={{ display: "flex", gap: "20px", color: "var(--text-light)", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "20px", color: "white", alignItems: "center" }}>
                 <Video 
                   size={22} 
                   style={{ cursor: "pointer", transition: "color 0.2s" }} 
-                  className="hover:text-white" 
+                  className="hover:text-gray-200" 
                   onClick={() => {
                     const otherUser = !selectedChat?.isGroupChat 
                       ? selectedChat?.users.find((u: any) => u._id !== user?._id) 
@@ -1795,7 +1795,7 @@ export default function ChatPage() {
                 <Phone 
                   size={20} 
                   style={{ cursor: "pointer", transition: "color 0.2s" }} 
-                  className="hover:text-white"
+                  className="hover:text-gray-200"
                   onClick={() => {
                     const otherUser = !selectedChat?.isGroupChat 
                       ? selectedChat?.users.find((u: any) => u._id !== user?._id) 
@@ -1803,12 +1803,12 @@ export default function ChatPage() {
                     if (otherUser) startCall(otherUser, "audio");
                   }} 
                 />
-                <div style={{ width: "1px", height: "20px", background: "var(--border-color)", margin: "0 5px" }}></div>
+                <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.3)", margin: "0 5px" }}></div>
                 <div style={{ position: "relative" }}>
                   <MoreVertical 
                     size={20} 
                     style={{ cursor: "pointer", transition: "color 0.2s" }} 
-                    className="hover:text-white" 
+                    className="hover:text-gray-200" 
                     onClick={() => setIsChatMenuOpen(!isChatMenuOpen)}
                   />
                   {isChatMenuOpen && (
@@ -1907,7 +1907,7 @@ export default function ChatPage() {
               }
 
               return (
-                <div className="glass-panel" style={{ position: "relative", padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "rgba(15, 23, 42, 0.95)" }}>
+                <div className="glass-panel" style={{ position: "relative", padding: "15px 1.5rem", display: "flex", gap: "15px", alignItems: "center", background: "#8ba1f8" }}>
                   {showEmojiPicker && (
                     <div style={{ position: "absolute", bottom: "80px", left: "20px", zIndex: 100 }}>
                       <EmojiPicker 
@@ -1945,17 +1945,17 @@ export default function ChatPage() {
                   <input type="file" ref={cameraRef} accept="image/*,video/*" capture="environment" style={{ display: "none" }} onChange={handleAttachmentSelect} />
                   <input type="file" ref={audioRef} accept="audio/*" style={{ display: "none" }} onChange={handleAttachmentSelect} />
 
-                  <div style={{ display: "flex", gap: "15px", color: "var(--text-light)" }}>
+                  <div style={{ display: "flex", gap: "15px", color: "white" }}>
                     <Smile 
                       size={24} 
-                      style={{ cursor: "pointer", transition: "color 0.2s", color: showEmojiPicker ? "var(--primary-color)" : "inherit" }} 
-                      className="hover:text-white" 
+                      style={{ cursor: "pointer", transition: "color 0.2s", color: "white" }} 
+                      className="hover:text-gray-200" 
                       onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowAttachmentMenu(false); }} 
                     />
                     <Plus 
                       size={26} 
-                      style={{ cursor: "pointer", transition: "color 0.2s", color: showAttachmentMenu ? "var(--primary-color)" : "inherit" }} 
-                      className="hover:text-white" 
+                      style={{ cursor: "pointer", transition: "color 0.2s", color: "white" }} 
+                      className="hover:text-gray-200" 
                       onClick={() => { setShowAttachmentMenu(!showAttachmentMenu); setShowEmojiPicker(false); }} 
                     />
                   </div>
@@ -1980,8 +1980,8 @@ export default function ChatPage() {
                       placeholder="Type a message..."
                       style={{
                         flex: 1,
-                        background: "rgba(30, 41, 59, 0.7)",
-                        border: "1px solid rgba(255,255,255,0.1)",
+                        background: "rgba(255, 255, 255, 0.2)",
+                        border: "none",
                         borderRadius: "20px",
                         padding: "12px 20px",
                         color: "white",
