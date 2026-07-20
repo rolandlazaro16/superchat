@@ -1245,8 +1245,8 @@ export default function ChatPage() {
           style={{ 
             width: "60px", 
             flexShrink: 0, 
-            background: "rgba(10, 15, 30, 0.95)",
-            borderRight: "1px solid var(--border-color)", 
+            background: "#8ba1f8",
+            borderRight: "1px solid rgba(255,255,255,0.2)", 
             display: "flex", 
             flexDirection: "column", 
             alignItems: "center", 
@@ -1351,18 +1351,18 @@ export default function ChatPage() {
           style={{
             width: "350px",
             flexShrink: 0,
-            borderRight: "1px solid var(--border-color)",
+            borderRight: "1px solid #f1f5f9",
             display: "flex",
             flexDirection: "column",
-            background: "rgba(15, 23, 42, 0.95)",
+            background: "white",
             overflow: "hidden",
           }}
         >
         {activeTab === "chats" ? (
           <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         {/* Sidebar Header */}
-        <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-light)" }}>Chats</h2>
+        <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#8ba1f8" }}>
+          <h2 style={{ fontSize: "1.4rem", fontWeight: "bold", color: "white" }}>Chatroom</h2>
           <div style={{ display: "flex", gap: "15px", color: "var(--text-light)", alignItems: "center" }}>
             {user?.isAdmin && (
               <UserPlus size={22} style={{ cursor: "pointer", transition: "color 0.2s" }} className="hover:text-white" onClick={() => setIsRegisterModalOpen(true)} />
@@ -1405,9 +1405,9 @@ export default function ChatPage() {
         </div>
         
         {/* Search Bar */}
-        <div style={{ padding: "0 15px 10px 15px" }}>
-          <div style={{ background: "rgba(30, 41, 59, 0.7)", borderRadius: "8px", display: "flex", alignItems: "center", padding: "8px 15px", gap: "10px" }}>
-            <Search size={18} color="var(--text-muted)" />
+        <div style={{ padding: "0 15px 10px 15px", background: "#8ba1f8" }}>
+          <div style={{ background: "rgba(255, 255, 255, 0.2)", borderRadius: "8px", display: "flex", alignItems: "center", padding: "8px 15px", gap: "10px" }}>
+            <Search size={18} color="white" />
             <input 
               type="text" 
               placeholder="Search or start a new chat" 
@@ -1419,16 +1419,16 @@ export default function ChatPage() {
         </div>
 
         {/* Filters */}
-        <div style={{ padding: "0 15px 10px 15px", display: "flex", gap: "10px", borderBottom: "1px solid var(--border-color)" }}>
+        <div style={{ padding: "10px 15px", display: "flex", gap: "10px", borderBottom: "1px solid #f1f5f9", background: "white" }}>
           <span 
             onClick={() => setActiveFilter('all')}
-            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'all' ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: activeFilter === 'all' ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'all' ? "#8ba1f8" : "#f1f5f9", color: activeFilter === 'all' ? "white" : "#64748b", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
           >
             All
           </span>
           <span 
             onClick={() => setActiveFilter('unread')}
-            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'unread' ? "rgba(30, 41, 59, 0.8)" : "rgba(30, 41, 59, 0.4)", color: activeFilter === 'unread' ? "white" : "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
+            style={{ padding: "6px 16px", borderRadius: "15px", background: activeFilter === 'unread' ? "#8ba1f8" : "#f1f5f9", color: activeFilter === 'unread' ? "white" : "#64748b", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.2s" }}
           >
             Unread
           </span>
@@ -1452,18 +1452,18 @@ export default function ChatPage() {
                     gap: "15px",
                     position: "relative"
                   }}
-                  className="hover:bg-slate-800/50"
+                  className="hover:bg-slate-50"
                 >
                   <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
                     {u.name.charAt(0).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
-                      <span style={{ fontWeight: "600", fontSize: "1.05rem", color: "var(--text-light)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <span style={{ fontWeight: "600", fontSize: "1.05rem", color: "#334155", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {u.name}
                       </span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "#94a3b8" }}>
                       <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {u.email}
                       </span>
@@ -1472,9 +1472,9 @@ export default function ChatPage() {
                 </div>
               ))
             ) : (
-              <div style={{ textAlign: "center", marginTop: "3rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                <div style={{ padding: "15px", background: "rgba(30, 41, 59, 0.5)", borderRadius: "50%" }}>
-                  <Search size={32} color="var(--text-muted)" />
+              <div style={{ textAlign: "center", marginTop: "3rem", color: "#94a3b8", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                <div style={{ padding: "15px", background: "#f1f5f9", borderRadius: "50%" }}>
+                  <Search size={32} color="#94a3b8" />
                 </div>
                 <p>No users found for "{search}"</p>
               </div>
@@ -1505,12 +1505,12 @@ export default function ChatPage() {
                   alignItems: "center",
                   padding: "12px 15px",
                   cursor: "pointer",
-                  background: selectedChat?._id === chat._id ? "rgba(30, 41, 59, 0.7)" : "transparent",
+                  background: selectedChat?._id === chat._id ? "#f1f5f9" : "transparent",
                   transition: "background 0.2s ease",
                   gap: "15px",
                   position: "relative"
                 }}
-                className="hover:bg-slate-800/50"
+                className="hover:bg-slate-50"
               >
                 {/* 3 Dots / Chevron Icon */}
                 {(hoveredItemId === chat._id || openMenuId === chat._id) && (
@@ -1545,19 +1545,19 @@ export default function ChatPage() {
                 </div>
                 
                 {/* Chat Info */}
-                <div style={{ flex: 1, overflow: "hidden", borderBottom: selectedChat?._id === chat._id ? "none" : "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
+                <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid #f1f5f9", paddingBottom: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
-                    <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "5px" }}>
+                    <div style={{ fontWeight: 500, color: "#334155", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "5px" }}>
                       {!chat.isGroupChat
                         ? chat.users.find((u: any) => u._id !== user?._id)?.name
                         : chat.chatName}
                     </div>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
+                    <span style={{ fontSize: "0.75rem", color: "#94a3b8", flexShrink: 0 }}>
                       {chat.latestMessage ? formatTime(chat.latestMessage.createdAt) : formatTime(chat.updatedAt)}
                     </span>
                   </div>
                   
-                  <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "#64748b" }}>
                     {chat.latestMessage ? (
                       <>
                         <CheckCheck size={16} color="#34B7F1" />
@@ -1592,7 +1592,7 @@ export default function ChatPage() {
                     gap: "15px",
                     position: "relative"
                   }}
-                  className="hover:bg-slate-800/50"
+                  className="hover:bg-slate-50"
                 >
                   {/* 3 Dots / Chevron Icon */}
                   {(hoveredItemId === u._id || openMenuId === u._id) && (
@@ -1620,20 +1620,20 @@ export default function ChatPage() {
                   <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
                     {u.name.charAt(0).toUpperCase()}
                   </div>
-                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px" }}>
+                  <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid #f1f5f9", paddingBottom: "10px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
-                      <div style={{ fontWeight: 500, color: "white", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.name}</div>
+                      <div style={{ fontWeight: 500, color: "#334155", fontSize: "1.05rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.name}</div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.9rem", color: "#64748b" }}>
                       <UserPlus size={14} /> 
                       <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}</span>
                     </div>
                   </div>
                 </div>
               )) : (
-                <div style={{ textAlign: "center", marginTop: "1rem", marginBottom: "3rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                  <div style={{ padding: "15px", background: "rgba(30, 41, 59, 0.5)", borderRadius: "50%" }}>
-                    <UserX size={32} color="var(--text-muted)" />
+              <div style={{ textAlign: "center", marginTop: "1rem", marginBottom: "3rem", color: "#94a3b8", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                  <div style={{ padding: "15px", background: "#f1f5f9", borderRadius: "50%" }}>
+                    <UserX size={32} color="#94a3b8" />
                   </div>
                   <p>No other users registered yet.</p>
                 </div>
