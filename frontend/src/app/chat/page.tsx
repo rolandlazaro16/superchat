@@ -1836,7 +1836,7 @@ export default function ChatPage() {
               </div>
             </div>
             
-            <div className="custom-scrollbar" style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", backgroundImage: "url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')", backgroundSize: "contain", backgroundBlendMode: "overlay", backgroundColor: "rgba(15, 23, 42, 0.9)" }}>
+            <div className="custom-scrollbar" style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", background: "linear-gradient(to bottom right, #8ba1f8, #b4c8fc)" }}>
               {messages.length > 0 ? (
                 messages.map((m: any, i: number) => (
                   <div
