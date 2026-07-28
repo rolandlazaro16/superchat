@@ -373,27 +373,55 @@ export default function Home() {
                       borderBottom: "1px solid #e0e0e0",
                       marginBottom: "20px",
                       paddingBottom: "8px",
+                      gap: "10px",
                     }}
                   >
-                    <Camera size={16} style={{ color: "#555", marginRight: "12px", flexShrink: 0 }} />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          postDetails(e.target.files[0]);
-                        }
-                      }}
-                      style={{
-                        border: "none",
-                        outline: "none",
-                        fontSize: "12px",
-                        color: "#666",
-                        width: "100%",
-                        background: "transparent",
-                        cursor: "pointer",
-                      }}
-                    />
+                    {pic ? (
+                      <img
+                        src={pic}
+                        alt="Profile Preview"
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          flexShrink: 0,
+                          border: "2px solid #10b981",
+                        }}
+                      />
+                    ) : (
+                      <Camera size={16} style={{ color: "#555", flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            postDetails(e.target.files[0]);
+                          }
+                        }}
+                        style={{
+                          border: "none",
+                          outline: "none",
+                          fontSize: "12px",
+                          color: "#666",
+                          width: "100%",
+                          background: "transparent",
+                          cursor: "pointer",
+                        }}
+                      />
+                      {picLoading && (
+                        <div style={{ fontSize: "11px", color: "#3b82f6", marginTop: "2px" }}>
+                          Uploading photo to Cloudinary...
+                        </div>
+                      )}
+                      {pic && !picLoading && (
+                        <div style={{ fontSize: "11px", color: "#10b981", marginTop: "2px", fontWeight: 500 }}>
+                          ✓ Profile photo uploaded successfully!
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </>
               )}

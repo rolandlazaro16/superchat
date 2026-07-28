@@ -1176,8 +1176,12 @@ export default function ChatPage() {
           
           {callStatus === "ringing" && incomingCallData && (
             <div style={{ textAlign: "center", color: "white", zIndex: 10 }}>
-              <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "bold" }}>
-                {incomingCallData.callerInfo?.name?.charAt(0).toUpperCase()}
+              <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "bold", overflow: "hidden" }}>
+                {incomingCallData.callerInfo?.profilePic ? (
+                  <img src={incomingCallData.callerInfo.profilePic} alt={incomingCallData.callerInfo.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  incomingCallData.callerInfo?.name?.charAt(0).toUpperCase()
+                )}
               </div>
               <h2 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>{incomingCallData.callerInfo?.name}</h2>
               <p style={{ color: "var(--text-muted)", marginBottom: "30px" }}>Incoming {callType} call...</p>
@@ -1194,8 +1198,12 @@ export default function ChatPage() {
 
           {callStatus === "calling" && callUserObj && (
             <div style={{ textAlign: "center", color: "white", position: "absolute", zIndex: 10 }}>
-              <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "bold" }}>
-                {callUserObj?.name?.charAt(0).toUpperCase()}
+              <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "bold", overflow: "hidden" }}>
+                {callUserObj?.profilePic ? (
+                  <img src={callUserObj.profilePic} alt={callUserObj.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  callUserObj?.name?.charAt(0).toUpperCase()
+                )}
               </div>
               <h2 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>{callUserObj?.name}</h2>
               <p style={{ color: "var(--text-muted)", marginBottom: "30px" }}>Calling...</p>
@@ -1210,8 +1218,12 @@ export default function ChatPage() {
              
              {callType === "audio" && callStatus === "active" && (
                 <div style={{ textAlign: "center", color: "white" }}>
-                  <div style={{ width: "120px", height: "120px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", fontWeight: "bold" }}>
-                    {callUserObj?.name?.charAt(0).toUpperCase()}
+                  <div style={{ width: "120px", height: "120px", borderRadius: "50%", background: "var(--primary-color)", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", fontWeight: "bold", overflow: "hidden" }}>
+                    {callUserObj?.profilePic ? (
+                      <img src={callUserObj.profilePic} alt={callUserObj.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      callUserObj?.name?.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <h2 style={{ fontSize: "2rem", marginBottom: "10px" }}>{callUserObj?.name}</h2>
                   <p style={{ color: "var(--text-muted)" }}>00:00</p>
@@ -1489,8 +1501,12 @@ export default function ChatPage() {
                   }}
                   className="hover:bg-slate-50"
                 >
-                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
-                    {u.name.charAt(0).toUpperCase()}
+                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, overflow: "hidden" }}>
+                    {u.profilePic ? (
+                      <img src={u.profilePic} alt={u.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      u.name.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
@@ -1575,9 +1591,20 @@ export default function ChatPage() {
                 )}
 
                 {/* Avatar */}
-                <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
-                  {(!chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id)?.name : chat.chatName).charAt(0).toUpperCase()}
-                </div>
+                {(() => {
+                  const otherUser = !chat.isGroupChat ? chat.users.find((u: any) => u._id !== user?._id) : null;
+                  const avatarPic = otherUser?.profilePic;
+                  const avatarName = (!chat.isGroupChat ? otherUser?.name : chat.chatName) || "U";
+                  return (
+                    <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, overflow: "hidden" }}>
+                      {avatarPic ? (
+                        <img src={avatarPic} alt={avatarName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        avatarName.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                  );
+                })()}
                 
                 {/* Chat Info */}
                 <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid #f1f5f9", paddingBottom: "10px" }}>
@@ -1652,8 +1679,12 @@ export default function ChatPage() {
                     />
                   )}
 
-                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
-                    {u.name.charAt(0).toUpperCase()}
+                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, overflow: "hidden" }}>
+                    {u.profilePic ? (
+                      <img src={u.profilePic} alt={u.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      u.name.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div style={{ flex: 1, overflow: "hidden", borderBottom: "1px solid #f1f5f9", paddingBottom: "10px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
@@ -1734,8 +1765,12 @@ export default function ChatPage() {
                     .filter((u: any) => u.name.toLowerCase().includes(callSearch.toLowerCase()) || u.email.toLowerCase().includes(callSearch.toLowerCase()))
                     .map((u: any) => (
                       <div key={u._id} className="hover:bg-slate-800/50" style={{ display: "flex", alignItems: "center", gap: "15px", padding: "12px 20px", cursor: "pointer", transition: "background 0.2s" }}>
-                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0 }}>
-                          {u.name.charAt(0).toUpperCase()}
+                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "var(--primary-color)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, overflow: "hidden" }}>
+                          {u.profilePic ? (
+                            <img src={u.profilePic} alt={u.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ) : (
+                            u.name.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div style={{ flex: 1, borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div>
@@ -1806,9 +1841,20 @@ export default function ChatPage() {
                   style={{ cursor: "pointer", color: "white", transition: "color 0.2s" }} 
                   onClick={() => setSelectedChat(null)} 
                 />
-                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-hover)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
-                  {(!selectedChat.isGroupChat ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name : selectedChat.chatName).charAt(0).toUpperCase()}
-                </div>
+                {(() => {
+                  const otherUser = !selectedChat.isGroupChat ? selectedChat.users.find((u: any) => u._id !== user?._id) : null;
+                  const avatarPic = otherUser?.profilePic;
+                  const avatarName = (!selectedChat.isGroupChat ? otherUser?.name : selectedChat.chatName) || "U";
+                  return (
+                    <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-hover)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem", flexShrink: 0, overflow: "hidden" }}>
+                      {avatarPic ? (
+                        <img src={avatarPic} alt={avatarName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        avatarName.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                  );
+                })()}
                 <h2 style={{ fontSize: "1.2rem", fontWeight: "600", color: "white" }}>
                   {!selectedChat.isGroupChat
                     ? selectedChat.users.find((u: any) => u._id !== user?._id)?.name
@@ -2288,8 +2334,12 @@ export default function ChatPage() {
                 return (
                   <>
                     {/* Profile Pic */}
-                    <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", color: "white", fontSize: "3rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 15px", border: "4px solid rgba(15, 23, 42, 1)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.5)" }}>
-                      {contactUser?.name?.charAt(0).toUpperCase()}
+                    <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "var(--primary-color)", color: "white", fontSize: "3rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 15px", border: "4px solid rgba(15, 23, 42, 1)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.5)", overflow: "hidden" }}>
+                      {contactUser?.profilePic ? (
+                        <img src={contactUser.profilePic} alt={contactUser.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        contactUser?.name?.charAt(0).toUpperCase()
+                      )}
                     </div>
                     
                     <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "0 0 5px 0" }}>{contactUser?.name}</h2>
