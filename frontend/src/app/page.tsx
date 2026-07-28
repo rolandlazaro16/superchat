@@ -29,6 +29,7 @@ export default function Home() {
 
   const postDetails = (pics: any) => {
     setPicLoading(true);
+    setError("");
     if (!pics) {
       setError("Please Select an Image!");
       setPicLoading(false);
@@ -39,9 +40,10 @@ export default function Home() {
       reader.readAsDataURL(pics);
       reader.onloadend = async () => {
         const base64Image = reader.result;
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         try {
           // 1. Try uploading via Backend API (uses authenticated Cloudinary API key & secret)
-          const res = await fetch("http://localhost:5000/api/user/upload", {
+          const res = await fetch(`${apiBaseUrl}/api/user/upload`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ image: base64Image }),
@@ -57,29 +59,37 @@ export default function Home() {
         }
 
         // 2. Direct Cloudinary client-side upload fallback
-        const data = new FormData();
-        data.append("file", pics);
-        data.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "superchat");
         const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "gi1ruooj";
-        data.append("cloud_name", cloudName);
-        fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: "post",
-          body: data,
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.url) {
-              setPic(data.url.toString());
-            } else {
-              setError(data.error?.message || "Failed to upload image.");
-            }
-            setPicLoading(false);
-          })
-          .catch((err) => {
-            console.error(err);
-            setError("Error uploading image");
-            setPicLoading(false);
+        const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "superchat";
+
+        const uploadToCloudinaryWithPreset = async (presetName: string) => {
+          const data = new FormData();
+          data.append("file", pics);
+          data.append("upload_preset", presetName);
+          data.append("cloud_name", cloudName);
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: "post",
+            body: data,
           });
+          return await res.json();
+        };
+
+        try {
+          let cloudData = await uploadToCloudinaryWithPreset(preset);
+          if (!cloudData.url && preset !== "ml_default") {
+            cloudData = await uploadToCloudinaryWithPreset("ml_default");
+          }
+          if (cloudData.url) {
+            setPic(cloudData.url.toString());
+          } else {
+            setError(cloudData.error?.message || "Failed to upload image.");
+          }
+        } catch (err) {
+          console.error(err);
+          setError("Error uploading image");
+        } finally {
+          setPicLoading(false);
+        }
       };
     } else {
       setError("Please Select a valid Image file (JPEG/PNG/WEBP)!");
