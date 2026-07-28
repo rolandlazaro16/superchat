@@ -29,37 +29,60 @@ export default function Home() {
 
   const postDetails = (pics: any) => {
     setPicLoading(true);
-    if (pics === undefined) {
+    if (!pics) {
       setError("Please Select an Image!");
       setPicLoading(false);
       return;
     }
-    if (pics.type === "image/jpeg" || pics.type === "image/png") {
-      const data = new FormData();
-      data.append("file", pics);
-      data.append("upload_preset", "superchat");
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "gi1ruooj";
-      data.append("cloud_name", cloudName);
-      fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: "post",
-        body: data,
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.url) {
+    if (pics.type && pics.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.readAsDataURL(pics);
+      reader.onloadend = async () => {
+        const base64Image = reader.result;
+        try {
+          // 1. Try uploading via Backend API (uses authenticated Cloudinary API key & secret)
+          const res = await fetch("http://localhost:5000/api/user/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64Image }),
+          });
+          const data = await res.json();
+          if (res.ok && data.url) {
             setPic(data.url.toString());
-          } else {
-            setError("Failed to upload image.");
+            setPicLoading(false);
+            return;
           }
-          setPicLoading(false);
+        } catch (backendErr) {
+          console.warn("Backend upload failed, attempting direct Cloudinary upload...", backendErr);
+        }
+
+        // 2. Direct Cloudinary client-side upload fallback
+        const data = new FormData();
+        data.append("file", pics);
+        data.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "superchat");
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "gi1ruooj";
+        data.append("cloud_name", cloudName);
+        fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: "post",
+          body: data,
         })
-        .catch((err) => {
-          console.error(err);
-          setError("Error uploading image");
-          setPicLoading(false);
-        });
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.url) {
+              setPic(data.url.toString());
+            } else {
+              setError(data.error?.message || "Failed to upload image.");
+            }
+            setPicLoading(false);
+          })
+          .catch((err) => {
+            console.error(err);
+            setError("Error uploading image");
+            setPicLoading(false);
+          });
+      };
     } else {
-      setError("Please Select an Image (JPEG/PNG)!");
+      setError("Please Select a valid Image file (JPEG/PNG/WEBP)!");
       setPicLoading(false);
       return;
     }

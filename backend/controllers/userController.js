@@ -83,4 +83,30 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-module.exports = { allUsers, toggleBlockUser, toggleHideContact, updateUserProfile };
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const uploadImage = async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) {
+      return res.status(400).json({ message: "No image provided" });
+    }
+
+    const uploadResponse = await cloudinary.uploader.upload(image, {
+      folder: "superchat",
+    });
+
+    res.status(200).json({ url: uploadResponse.secure_url });
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    res.status(500).json({ message: error.message || "Failed to upload image" });
+  }
+};
+
+module.exports = { allUsers, toggleBlockUser, toggleHideContact, updateUserProfile, uploadImage };

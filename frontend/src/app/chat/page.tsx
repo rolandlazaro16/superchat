@@ -214,37 +214,62 @@ export default function ChatPage() {
     setProfilePicLoading(true);
     setProfileError("");
     setProfileSuccess("");
-    if (pics === undefined) {
+    if (!pics) {
       setProfileError("Please Select an Image!");
       setProfilePicLoading(false);
       return;
     }
-    if (pics.type === "image/jpeg" || pics.type === "image/png") {
-      const data = new FormData();
-      data.append("file", pics);
-      data.append("upload_preset", "superchat"); 
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "gi1ruooj";
-      data.append("cloud_name", cloudName);
-      fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: "post",
-        body: data,
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.url) {
+    if (pics.type && pics.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.readAsDataURL(pics);
+      reader.onloadend = async () => {
+        const base64Image = reader.result;
+        try {
+          // 1. Try uploading via Backend API (uses authenticated Cloudinary API key & secret)
+          const res = await fetch("http://localhost:5000/api/user/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64Image }),
+          });
+          const data = await res.json();
+          if (res.ok && data.url) {
             setProfilePic(data.url.toString());
-          } else {
-            setProfileError("Failed to upload image. Please check Cloudinary config.");
+            setProfileSuccess("Photo uploaded successfully! Click Save Changes below.");
+            setProfilePicLoading(false);
+            return;
           }
-          setProfilePicLoading(false);
+        } catch (backendErr) {
+          console.warn("Backend upload failed, attempting direct Cloudinary upload...", backendErr);
+        }
+
+        // 2. Direct Cloudinary client-side upload fallback
+        const data = new FormData();
+        data.append("file", pics);
+        data.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "superchat");
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "gi1ruooj";
+        data.append("cloud_name", cloudName);
+        fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: "post",
+          body: data,
         })
-        .catch((err) => {
-          console.error(err);
-          setProfileError("Error uploading image");
-          setProfilePicLoading(false);
-        });
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.url) {
+              setProfilePic(data.url.toString());
+              setProfileSuccess("Photo uploaded! Click Save Changes below.");
+            } else {
+              setProfileError(data.error?.message || "Failed to upload image.");
+            }
+            setProfilePicLoading(false);
+          })
+          .catch((err) => {
+            console.error(err);
+            setProfileError("Error uploading image");
+            setProfilePicLoading(false);
+          });
+      };
     } else {
-      setProfileError("Please Select an Image (JPEG/PNG)!");
+      setProfileError("Please Select a valid Image file (JPEG/PNG/WEBP)!");
       setProfilePicLoading(false);
       return;
     }
@@ -2058,18 +2083,18 @@ export default function ChatPage() {
 
             <form onSubmit={handleProfileSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "0.5rem" }}>
-                <div style={{ position: "relative", width: "96px", height: "96px", borderRadius: "50%", background: "#d1fae5", border: "4px solid white", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} className="group">
+                <div style={{ position: "relative", width: "96px", height: "96px", borderRadius: "50%", background: "#d1fae5", border: "4px solid #10b981", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {profilePic ? (
                     <img src={profilePic} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
                     <span style={{ fontSize: "2.5rem", fontWeight: "bold", color: "#10b981" }}>{profileName ? profileName.charAt(0).toUpperCase() : "U"}</span>
                   )}
-                  <label style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s", cursor: "pointer" }} className="group-hover:opacity-100">
-                    <Camera size={24} color="white" />
-                    <span style={{ color: "white", fontSize: "0.75rem", marginTop: "4px", fontWeight: 500 }}>Change</span>
-                    <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files && e.target.files[0]) postProfileDetails(e.target.files[0]); }} />
-                  </label>
                 </div>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "12px", padding: "8px 16px", background: "#ecfdf5", border: "1px solid #10b981", borderRadius: "20px", color: "#047857", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
+                  <Camera size={18} color="#047857" />
+                  <span>{profilePicLoading ? "Uploading..." : "Change Profile Photo"}</span>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files && e.target.files[0]) postProfileDetails(e.target.files[0]); }} />
+                </label>
               </div>
 
               <div>
