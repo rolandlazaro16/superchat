@@ -38,8 +38,9 @@ export default function Home() {
       const data = new FormData();
       data.append("file", pics);
       data.append("upload_preset", "superchat");
-      data.append("cloud_name", "your_cloud_name");
-      fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "gi1ruooj";
+      data.append("cloud_name", cloudName);
+      fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
         method: "post",
         body: data,
       })
